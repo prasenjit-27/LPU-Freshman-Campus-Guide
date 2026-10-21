@@ -1,0 +1,2 @@
+import GuidePage from "@/components/GuidePage";
+export default function Page() { return <GuidePage id="student-life" />; }
