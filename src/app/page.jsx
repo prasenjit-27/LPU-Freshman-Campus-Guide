@@ -1,18 +1,73 @@
-import Link from "next/link";
-import { sources } from "@/data/sources";
-export default function Home() {
+import { getServerSession } from "next-auth";
+import { ObjectId } from "mongodb";
+import { authOptions } from "@/lib/auth";
+import { getDb, safeFind } from "@/lib/mongodb";
+import PublicLanding from "@/components/PublicLanding";
+import StudentDashboard from "@/components/StudentDashboard";
+
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const session = await getServerSession(authOptions).catch(() => null);
+
+  // Common public announcements and upcoming events
+  const [announcements, upcomingEvents] = await Promise.all([
+    safeFind("announcements", {}, 5),
+    safeFind("events", { startsAt: { $gte: new Date() } }, 5),
+  ]);
+
+  // Case 1: Unauthenticated Visitor -> Render Public Landing Dashboard
+  if (!session) {
+    return (
+      <PublicLanding 
+        announcements={announcements} 
+        upcomingEvents={upcomingEvents} 
+      />
+    );
+  }
+
+  // Case 2: Authenticated User (Student or Admin accessing /)
+  // Fetch student progress, profile, and saved locations
+  let completedTaskCount = 0;
+  let profile = null;
+  let savedLocations = [];
+
+  try {
+    const db = await getDb();
+    const userId = session.user.id;
+
+    const [tasksDone, studentProfile, savedRows] = await Promise.all([
+      db.collection("userTaskProgress").countDocuments({ userId, done: true }),
+      db.collection("studentProfiles").findOne({ userId }),
+      db.collection("savedLocations").find({ userId }).toArray(),
+    ]);
+
+    completedTaskCount = tasksDone;
+    profile = studentProfile;
+
+    const savedLocationIds = savedRows
+      .map((r) => r.locationId)
+      .filter((id) => ObjectId.isValid(id))
+      .map((id) => new ObjectId(id));
+
+    if (savedLocationIds.length > 0) {
+      savedLocations = await db
+        .collection("campusLocations")
+        .find({ _id: { $in: savedLocationIds } })
+        .toArray();
+    }
+  } catch (err) {
+    console.error("Error aggregating student dashboard:", err);
+  }
+
   return (
-    <div className="space-y-8">
-      <section className="card">
-        <h1 className="text-3xl font-bold">LPU Freshman Guide — Your Guide to Life at LPU</h1>
-        <p className="mt-2 text-slate-600">A campus directory, map, safety resources and first-days journey for new students. Unofficial; every fact links to its official source.</p>
-        <div className="mt-4 flex gap-3"><Link className="btn" href="/campus-map">Open campus map</Link><Link className="btn" href="/freshmen-guide">First 15 days</Link></div>
-        <form action="/services" className="mt-4 flex gap-2"><input name="q" className="input" aria-label="Search directory" placeholder="Search buildings, services, guides" /><button className="btn">Search</button></form>
-      </section>
-      <section><h2 className="mb-3 text-xl font-semibold">Official resources</h2>
-        <ul className="grid gap-3 md:grid-cols-3">{Object.values(sources).map((s) => (
-          <li key={s.sourceUrl} className="card"><a className="font-medium underline" href={s.sourceUrl} target="_blank" rel="noreferrer">{s.sourceName}</a></li>))}</ul>
-      </section>
-    </div>
+    <StudentDashboard
+      user={session.user}
+      completedTaskCount={completedTaskCount}
+      profile={profile}
+      savedLocations={savedLocations}
+      announcements={announcements}
+      upcomingEvents={upcomingEvents}
+    />
   );
 }
