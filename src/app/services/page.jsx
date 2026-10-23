@@ -1,15 +1,138 @@
+import Image from "next/image";
 import { safeFind } from "@/lib/mongodb";
-import SourceLink from "@/components/SourceLink";
+import { defaultCampusLocations } from "@/data/campusLocations";
+import Link from "next/link";
+import { 
+  Building2, 
+  MapPin, 
+  Search, 
+  Compass, 
+  Sparkles,
+  ExternalLink,
+  Flame,
+  ArrowRight
+} from "lucide-react";
+
 export default async function Services({ searchParams }) {
   const q = (searchParams?.q || "").toString().slice(0, 60);
   const rx = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const items = await safeFind("campusLocations", q ? { $or: [{ name: { $regex: rx, $options: "i" } }, { category: { $regex: rx, $options: "i" } }] } : {});
+  
+  // Query DB first
+  let dbItems = await safeFind(
+    "campusLocations", 
+    q ? { $or: [{ name: { $regex: rx, $options: "i" } }, { category: { $regex: rx, $options: "i" } }] } : {}
+  );
+
+  // If DB has no entries or is offline, fallback gracefully to our verified dataset
+  let items = dbItems.length > 0 ? dbItems : defaultCampusLocations.filter((l) => {
+    if (!q) return true;
+    return (
+      l.name.toLowerCase().includes(q.toLowerCase()) || 
+      l.category.toLowerCase().includes(q.toLowerCase()) ||
+      l.description.toLowerCase().includes(q.toLowerCase())
+    );
+  });
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Campus directory</h1>
-      <form className="flex gap-2"><input name="q" defaultValue={q} className="input" aria-label="Search" placeholder="Search by name or category" /><button className="btn">Search</button></form>
-      {items.length === 0 ? <p className="card text-sm">No locations yet. An admin can add sourced locations, or run the seed script after configuring MongoDB.</p> :
-        items.map((l) => <div key={l._id} className="card"><h2 className="font-semibold">{l.name}</h2><p className="text-sm text-slate-600">{l.category} — {l.description}</p><SourceLink s={l} /></div>)}
+    <div className="space-y-8 py-2">
+      {/* Neo-Brutalist Header Banner with Official LPU Logo */}
+      <section className="relative overflow-hidden rounded-2xl border-4 border-black bg-white p-6 sm:p-10 shadow-neo-xl">
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full border-4 border-black bg-lpu-yellow" />
+        
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-3 border-black bg-white shadow-neo">
+            <Image 
+              src="/lpu-logo.png" 
+              alt="LPU Official Logo" 
+              fill 
+              sizes="64px"
+              className="object-contain p-1" 
+              priority
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 rounded border-2 border-black bg-lpu-yellow px-2.5 py-0.5 text-xs font-black uppercase text-black shadow-neo-sm">
+              <Compass className="h-3.5 w-3.5 text-lpu-orange" />
+              <span>Campus Navigator</span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-black">
+              Campus Directory &amp; Block Locator
+            </h1>
+            <p className="text-xs sm:text-sm font-semibold text-black/80 max-w-2xl leading-relaxed">
+              Search academic blocks, residential hostels, dining spots, auditoriums, and healthcare centers.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Neo Search Input Bar */}
+      <form className="flex gap-2.5">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-black" />
+          <input 
+            name="q" 
+            defaultValue={q} 
+            className="input pl-10 text-xs sm:text-sm bg-white" 
+            aria-label="Search directory" 
+            placeholder="Search block (e.g. Block 34, Uni-Mall, Hospital, Library)..." 
+          />
+        </div>
+        <button className="btn btn-black text-xs sm:text-sm px-6">
+          Search
+        </button>
+      </form>
+
+      {/* Directory Cards Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((l, idx) => (
+          <div 
+            key={l._id || idx} 
+            className="card border-3 border-black p-5 shadow-neo flex flex-col justify-between space-y-3 hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform"
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="neo-badge neo-badge-yellow text-[10px] py-0.5">
+                  {l.category}
+                </span>
+                {l.verificationStatus === "verified" && (
+                  <span className="text-[10px] font-black uppercase text-emerald-700">
+                    ✓ Verified
+                  </span>
+                )}
+              </div>
+
+              <h2 className="text-sm font-black uppercase text-black">
+                {l.name}
+              </h2>
+
+              <p className="text-xs font-semibold text-black/80 leading-relaxed">
+                {l.description}
+              </p>
+            </div>
+
+            <div className="pt-2 border-t-2 border-black flex items-center justify-between">
+              <Link 
+                href={`/campus-map`} 
+                className="inline-flex items-center gap-1 text-xs font-black uppercase text-lpu-darkOrange underline"
+              >
+                <MapPin className="h-3 w-3" />
+                <span>Locate on Map</span>
+              </Link>
+              <span className="text-[10px] font-bold text-black/60">
+                {l.sourceName || "Campus Directory"}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {items.length === 0 && (
+        <div className="card border-3 border-black bg-white p-8 text-center space-y-2 shadow-neo">
+          <p className="text-sm font-black uppercase text-black">No matching campus location found</p>
+          <p className="text-xs font-bold text-black/60">Try searching for &quot;Auditorium&quot;, &quot;CSE&quot;, &quot;Library&quot;, or &quot;Hostel&quot;.</p>
+        </div>
+      )}
     </div>
   );
 }

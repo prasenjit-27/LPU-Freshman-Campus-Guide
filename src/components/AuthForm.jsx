@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { LogIn, UserPlus, ShieldAlert, ArrowRight, CheckCircle2 } from "lucide-react";
+import { LogIn, UserPlus, ShieldAlert, ArrowRight, CheckCircle2, Flame } from "lucide-react";
 
 export default function AuthForm({ mode = "login", adminNotice = false }) {
   const router = useRouter();
@@ -65,42 +66,49 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
       router.push(callbackUrl);
       router.refresh();
     } catch {
+      setErr("Failed to sign in. Please try again.");
       setBusy(false);
-      setErr("An unexpected error occurred during sign in.");
     }
   }
 
   return (
-    <div className="mx-auto max-w-md w-full">
-      <form onSubmit={submit} className="card shadow-lg border border-slate-200/80 p-6 sm:p-8 space-y-4">
+    <div className="mx-auto max-w-md w-full py-4">
+      <form onSubmit={submit} className="card border-4 border-black bg-white shadow-neo-xl p-6 sm:p-8 space-y-4">
+        {/* Brand header */}
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-black">
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-black bg-white shadow-neo-sm">
+            <Image 
+              src="/lpu-logo.png" 
+              alt="LPU Official Logo" 
+              fill 
+              sizes="48px"
+              className="object-contain p-0.5" 
+              priority
+            />
+          </div>
+          <div>
+            <span className="neo-badge neo-badge-yellow text-[10px]">
+              {mode === "signup" ? "New Student Registration" : "Student Login"}
+            </span>
+            <h1 className="text-xl font-black uppercase text-black tracking-tight mt-0.5">
+              {mode === "signup" ? "Join LPU Guide" : "Welcome Back"}
+            </h1>
+          </div>
+        </div>
+
         {adminNotice && (
-          <div className="flex items-start gap-2.5 rounded-lg bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-900">
-            <ShieldAlert className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+          <div className="flex items-start gap-2.5 rounded-lg border-2 border-black bg-lpu-yellow p-3.5 text-xs font-bold text-black shadow-neo-sm">
+            <ShieldAlert className="h-4 w-4 shrink-0 text-black mt-0.5" />
             <div>
-              <p className="font-semibold">Administrator Authentication Required</p>
-              <p className="mt-0.5 text-amber-700">Access to the Admin Management Panel is restricted to verified administrative personnel.</p>
+              <p className="font-black uppercase">Admin Auth Required</p>
+              <p className="mt-0.5 text-black/80">Access to the Admin Management Panel is restricted to authorized personnel.</p>
             </div>
           </div>
         )}
 
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-            {mode === "signup" ? <UserPlus className="h-3.5 w-3.5" /> : <LogIn className="h-3.5 w-3.5" />}
-            {mode === "signup" ? "New Student Registration" : "Student & Staff Portal"}
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {mode === "signup" ? "Create your Guide account" : "Log in to your account"}
-          </h1>
-          <p className="text-xs text-slate-500">
-            {mode === "signup" 
-              ? "Track your first 15 days onboarding, save campus spots, and customize your experience." 
-              : "Enter your credentials to access your student dashboard and saved resources."}
-          </p>
-        </div>
-
         {mode === "signup" && (
           <div>
-            <label htmlFor="name" className="block text-xs font-medium text-slate-700 mb-1">Full Name</label>
+            <label htmlFor="name" className="block text-xs font-black uppercase text-black mb-1">Full Name</label>
             <input
               id="name"
               name="name"
@@ -113,7 +121,7 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
         )}
 
         <div>
-          <label htmlFor="email" className="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
+          <label htmlFor="email" className="block text-xs font-black uppercase text-black mb-1">Email Address</label>
           <input
             id="email"
             name="email"
@@ -127,9 +135,9 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
 
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label htmlFor="password" className="block text-xs font-medium text-slate-700">Password</label>
+            <label htmlFor="password" className="block text-xs font-black uppercase text-black">Password</label>
             {mode === "login" && (
-              <Link href="/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline">
+              <Link href="/forgot-password" className="text-xs font-bold text-lpu-darkOrange underline">
                 Forgot password?
               </Link>
             )}
@@ -146,50 +154,47 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
           />
         </div>
 
-        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-500">
-          <span className="font-semibold text-slate-700">Important:</span> This is an independent guide account. Never enter your official University Management System (UMS) password.
+        <div className="rounded-lg border-2 border-black bg-lpu-soft/60 p-3 text-xs font-bold text-black shadow-neo-sm">
+          <span>Note:</span> This is an independent guide account. Never enter your official University Management System (UMS) password.
         </div>
 
         {err && (
-          <div role="alert" className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
-            <ShieldAlert className="h-4 w-4 shrink-0 text-red-500" />
+          <div role="alert" className="flex items-center gap-2 rounded-lg border-2 border-black bg-rose-100 p-3 text-xs font-bold text-black shadow-neo-sm">
+            <ShieldAlert className="h-4 w-4 shrink-0 text-rose-600" />
             <span>{err}</span>
           </div>
         )}
 
         {success && (
-          <div role="status" className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+          <div role="status" className="flex items-center gap-2 rounded-lg border-2 border-black bg-emerald-100 p-3 text-xs font-bold text-black shadow-neo-sm">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" />
             <span>{success}</span>
           </div>
         )}
 
-        <button type="submit" className="btn w-full justify-center py-2.5 text-sm font-semibold" disabled={busy}>
+        <button type="submit" className="btn btn-yellow w-full justify-center py-2.5 text-xs font-black" disabled={busy}>
           {busy ? (
-            <span className="flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Processing...
-            </span>
+            <span>Processing...</span>
           ) : (
             <span className="flex items-center gap-1.5">
-              {mode === "signup" ? "Create Account & Get Started" : "Sign In to Guide"}
+              {mode === "signup" ? "CREATE ACCOUNT" : "SIGN IN TO PORTAL"}
               <ArrowRight className="h-4 w-4" />
             </span>
           )}
         </button>
 
-        <div className="text-center pt-2 text-xs text-slate-600 border-t border-slate-100">
+        <div className="text-center pt-2 text-xs font-bold text-black border-t-2 border-black">
           {mode === "signup" ? (
             <p>
               Already have an account?{" "}
-              <Link href={`/login${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="font-semibold text-indigo-600 hover:underline">
+              <Link href={`/login${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="font-black text-lpu-darkOrange underline">
                 Log in here
               </Link>
             </p>
           ) : (
             <p>
-              New to LPU or don't have an account?{" "}
-              <Link href={`/signup${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="font-semibold text-indigo-600 hover:underline">
+              New to LPU or don&apos;t have an account?{" "}
+              <Link href={`/signup${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="font-black text-lpu-darkOrange underline">
                 Create free account
               </Link>
             </p>

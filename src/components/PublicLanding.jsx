@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Compass, 
   MapPin, 
@@ -18,58 +19,79 @@ import {
   Search,
   BellRing,
   HelpCircle,
-  LogIn
+  LogIn,
+  Zap,
+  Flame
 } from "lucide-react";
 import { sources } from "@/data/sources";
 
 export default function PublicLanding({ announcements = [], upcomingEvents = [] }) {
   return (
-    <div className="space-y-16 py-4">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 p-8 sm:p-14 text-white shadow-xl">
-        <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl" />
-        <div className="absolute -left-20 -bottom-20 h-80 w-80 rounded-full bg-purple-500/20 blur-3xl" />
+    <div className="space-y-12 py-2">
+      {/* Neo-Brutalist Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl border-4 border-black bg-white p-6 sm:p-12 shadow-neo-xl">
+        {/* Background decorative neo patterns */}
+        <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full border-4 border-black bg-lpu-yellow" />
+        <div className="absolute right-12 bottom-6 h-16 w-16 rotate-12 border-4 border-black bg-lpu-orange" />
         
-        <div className="relative z-10 max-w-3xl space-y-5">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-medium backdrop-blur-md border border-white/15 text-indigo-200">
-            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-            Independent & Unofficial LPU Campus Guide
+        <div className="relative z-10 max-w-3xl space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-lpu-yellow px-3 py-1 text-xs font-black uppercase text-black shadow-neo-sm">
+            <Flame className="h-4 w-4 text-lpu-orange" />
+            <span>Lovely Professional University • Freshmen Portal</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-            Navigate Your First Days at <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400">Lovely Professional University</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-indigo-100/90 leading-relaxed max-w-2xl">
-            A comprehensive, verified companion for freshers. Explore campus buildings, master the official University Management System (UMS), track your first-15-days checklist, and discover residential facilities.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <Link href="/signup" className="btn bg-amber-400 hover:bg-amber-500 text-slate-950 font-semibold px-5 py-3 text-sm shadow-lg shadow-amber-400/20 border-0">
-              <span>Create Student Account</span>
-              <ArrowRight className="h-4 w-4 ml-1.5" />
-            </Link>
-            <Link href="/login" className="btn bg-white/15 hover:bg-white/25 text-white border border-white/20 px-5 py-3 text-sm backdrop-blur-md">
-              <LogIn className="h-4 w-4 mr-1.5" />
-              <span>Student Log In</span>
-            </Link>
-            <Link href="/campus-map" className="btn bg-transparent hover:bg-white/10 text-indigo-200 border border-indigo-300/30 px-4 py-3 text-sm">
-              <MapPin className="h-4 w-4 mr-1.5" />
-              <span>Explore Campus Map</span>
-            </Link>
-          </div>
-
-          {/* Quick Search */}
-          <form action="/services" method="GET" className="pt-4 flex flex-col sm:flex-row gap-2 max-w-lg">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                name="q"
-                placeholder="Search campus blocks, food courts, hospitals, libraries..."
-                className="input pl-10 text-sm bg-white/95 text-slate-900 placeholder:text-slate-500 border-0 shadow-inner"
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-full border-3 border-black bg-white shadow-neo">
+              <Image 
+                src="/lpu-logo.png" 
+                alt="LPU Official Logo" 
+                fill 
+                sizes="80px"
+                className="object-contain p-1" 
+                priority
               />
             </div>
-            <button type="submit" className="btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium shrink-0">
+            <div>
+              <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-black leading-none">
+                LPU Freshman <span className="bg-lpu-orange text-white px-2 py-0.5 border-2 border-black shadow-neo-sm inline-block">Guide</span>
+              </h1>
+              <p className="text-xs sm:text-sm font-bold text-black uppercase tracking-wider mt-1">
+                Your Complete In-App Campus Survival System
+              </p>
+            </div>
+          </div>
+
+          <p className="text-sm sm:text-base font-semibold text-black leading-relaxed border-l-4 border-lpu-orange pl-4 bg-lpu-soft/60 py-2 rounded-r-lg">
+            Everything you need for your first weeks at LPU. Master the UMS portal, pack with the complete hostel checklist, locate academic blocks, and read emergency medical protocols natively on this platform.
+          </p>
+
+          {/* Neo Actions */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Link href="/freshmen-guide" className="btn btn-yellow text-sm px-6 py-3">
+              <CalendarCheck2 className="h-4 w-4 mr-2" />
+              <span>First 15 Days Checklist</span>
+            </Link>
+            <Link href="/campus-map" className="btn btn-white text-sm px-5 py-3">
+              <MapPin className="h-4 w-4 mr-2 text-lpu-orange" />
+              <span>Interactive Map</span>
+            </Link>
+            <Link href="/signup" className="btn text-sm px-5 py-3">
+              <span>Create Account</span>
+              <ArrowRight className="h-4 w-4 ml-1.5" />
+            </Link>
+          </div>
+
+          {/* Quick Search Neo Form */}
+          <form action="/services" method="GET" className="pt-2 flex flex-col sm:flex-row gap-2 max-w-xl">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-black" />
+              <input
+                name="q"
+                placeholder="Search Block 34, Uni-Mall, Hospital, Library..."
+                className="input pl-10 text-xs sm:text-sm bg-white"
+              />
+            </div>
+            <button type="submit" className="btn btn-black shrink-0 text-xs sm:text-sm">
               Search Directory
             </button>
           </form>
@@ -78,267 +100,167 @@ export default function PublicLanding({ announcements = [], upcomingEvents = [] 
 
       {/* Feature Pillars Grid */}
       <section className="space-y-6">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-            Everything Freshmen Need In One Place
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600">
-            All facts link to official university sources. Sign up to save favorite places, track checklist progress, and personalize your guide.
-          </p>
+        <div className="flex items-center justify-between border-b-4 border-black pb-3">
+          <div>
+            <h2 className="text-2xl font-black uppercase text-black tracking-tight flex items-center gap-2">
+              <Zap className="h-6 w-6 text-lpu-orange" />
+              <span>Core Freshmen Modules</span>
+            </h2>
+            <p className="text-xs font-bold text-black uppercase">
+              All guides and campus data built directly inside your website
+            </p>
+          </div>
+          <span className="hidden sm:inline-block neo-badge neo-badge-yellow">
+            100% Native Data
+          </span>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Card 1: Interactive Campus Map */}
-          <div className="card hover:shadow-md transition-shadow border-slate-200 p-6 flex flex-col justify-between">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Card 1: Map */}
+          <Link href="/campus-map" className="card group hover:-translate-x-1 hover:-translate-y-1">
             <div className="space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                <Compass className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-xl border-3 border-black bg-lpu-yellow flex items-center justify-center text-black shadow-neo-sm group-hover:bg-lpu-orange group-hover:text-white transition-colors">
+                <Compass className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Interactive Campus Map</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                600+ acres simplified. Find academic blocks, hostel entry gates, uni-mall, sports facilities, and calculate walking routes across campus.
+              <h3 className="text-base font-black uppercase text-black">Interactive Campus Map</h3>
+              <p className="text-xs font-medium text-black leading-relaxed">
+                600+ acres simplified. Find Block 32 reporting, Block 34 (CSE), Block 38 Library, hostels, and routing.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100">
-              <Link href="/campus-map" className="inline-flex items-center text-xs font-semibold text-indigo-600 hover:text-indigo-800">
-                Open Map View <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
+            <div className="mt-4 pt-3 border-t-2 border-black flex items-center justify-between text-xs font-black text-lpu-darkOrange">
+              <span>EXPLORE MAP</span>
+              <ArrowRight className="h-4 w-4" />
             </div>
-          </div>
+          </Link>
 
-          {/* Card 2: First 15 Days Checklist */}
-          <div className="card hover:shadow-md transition-shadow border-slate-200 p-6 flex flex-col justify-between">
+          {/* Card 2: 15 Days */}
+          <Link href="/freshmen-guide" className="card group hover:-translate-x-1 hover:-translate-y-1">
             <div className="space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                <CalendarCheck2 className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-xl border-3 border-black bg-lpu-orange flex items-center justify-center text-white shadow-neo-sm group-hover:bg-lpu-yellow group-hover:text-black transition-colors">
+                <CalendarCheck2 className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">First 15 Days Checklist</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Step-by-step orientation checklist: biometrics registration, student ID collection, Wi-Fi onboarding, and library card activation.
+              <h3 className="text-base font-black uppercase text-black">First 15 Days Checklist</h3>
+              <p className="text-xs font-medium text-black leading-relaxed">
+                Complete walkthrough: physical reporting at Block 32, packing lists, room allotment, and biometric ID cards.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100">
-              <Link href="/freshmen-guide" className="inline-flex items-center text-xs font-semibold text-emerald-600 hover:text-emerald-800">
-                View Checklist <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
+            <div className="mt-4 pt-3 border-t-2 border-black flex items-center justify-between text-xs font-black text-lpu-darkOrange">
+              <span>VIEW CHECKLIST</span>
+              <ArrowRight className="h-4 w-4" />
             </div>
-          </div>
+          </Link>
 
           {/* Card 3: Academics & UMS */}
-          <div className="card hover:shadow-md transition-shadow border-slate-200 p-6 flex flex-col justify-between">
+          <Link href="/academics" className="card group hover:-translate-x-1 hover:-translate-y-1">
             <div className="space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                <GraduationCap className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-xl border-3 border-black bg-[#A0E7E5] flex items-center justify-center text-black shadow-neo-sm group-hover:bg-black group-hover:text-white transition-colors">
+                <GraduationCap className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Academics & UMS Navigation</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Guidance on navigating official systems: academic calendar, attendance policies, library facilities, and term exam outlines.
+              <h3 className="text-base font-black uppercase text-black">Academics & UMS Setup</h3>
+              <p className="text-xs font-medium text-black leading-relaxed">
+                First-time UMS login, 75% strict attendance rules, Continuous Assessment (CA) pattern, and timetable navigation.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100">
-              <Link href="/academics" className="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800">
-                Explore Academics <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
+            <div className="mt-4 pt-3 border-t-2 border-black flex items-center justify-between text-xs font-black text-black">
+              <span>UMS HANDBOOK</span>
+              <ArrowRight className="h-4 w-4" />
             </div>
-          </div>
+          </Link>
 
-          {/* Card 4: Hostel & Residential Guide */}
-          <div className="card hover:shadow-md transition-shadow border-slate-200 p-6 flex flex-col justify-between">
+          {/* Card 4: Hostel & Residential */}
+          <Link href="/hostel" className="card group hover:-translate-x-1 hover:-translate-y-1">
             <div className="space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                <BedDouble className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-xl border-3 border-black bg-[#FFAEBC] flex items-center justify-center text-black shadow-neo-sm group-hover:bg-black group-hover:text-white transition-colors">
+                <BedDouble className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Hostel & Residences</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Rules, leave clearance procedures, laundry services, packing recommendations, and warden reporting guidelines.
+              <h3 className="text-base font-black uppercase text-black">Hostel & Curfews</h3>
+              <p className="text-xs font-medium text-black leading-relaxed">
+                BH-1 to BH-8, GH-1 to GH-6, turnstile attendance at 8:30 PM, day passes, and home leave permissions.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100">
-              <Link href="/hostel" className="inline-flex items-center text-xs font-semibold text-amber-600 hover:text-amber-800">
-                Read Residence Guide <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
+            <div className="mt-4 pt-3 border-t-2 border-black flex items-center justify-between text-xs font-black text-black">
+              <span>HOSTEL GUIDE</span>
+              <ArrowRight className="h-4 w-4" />
             </div>
-          </div>
+          </Link>
 
-          {/* Card 5: Food Courts & Uni-Mall */}
-          <div className="card hover:shadow-md transition-shadow border-slate-200 p-6 flex flex-col justify-between">
+          {/* Card 5: Dining & Uni-Mall */}
+          <Link href="/dining" className="card group hover:-translate-x-1 hover:-translate-y-1">
             <div className="space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
-                <UtensilsCrossed className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-xl border-3 border-black bg-[#BFFCC6] flex items-center justify-center text-black shadow-neo-sm group-hover:bg-black group-hover:text-white transition-colors">
+                <UtensilsCrossed className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Dining & Daily Services</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Mess menus, food kiosks, campus shopping complexes, stationery stores, and internal e-rickshaw transportation.
+              <h3 className="text-base font-black uppercase text-black">Dining & Uni-Mall</h3>
+              <p className="text-xs font-medium text-black leading-relaxed">
+                4-meal residential mess timings, Domino&apos;s, Subway, stationery shops, laundromat facilities, and supermarkets.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100">
-              <Link href="/dining" className="inline-flex items-center text-xs font-semibold text-orange-600 hover:text-orange-800">
-                View Dining Spots <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
+            <div className="mt-4 pt-3 border-t-2 border-black flex items-center justify-between text-xs font-black text-black">
+              <span>DINING TIMINGS</span>
+              <ArrowRight className="h-4 w-4" />
             </div>
-          </div>
+          </Link>
 
-          {/* Card 6: Safety & Emergency */}
-          <div className="card hover:shadow-md transition-shadow border-slate-200 p-6 flex flex-col justify-between">
+          {/* Card 6: Safety & Uni-Hospital */}
+          <Link href="/safety" className="card group hover:-translate-x-1 hover:-translate-y-1">
             <div className="space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
-                <ShieldCheck className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-xl border-3 border-black bg-[#FFABAB] flex items-center justify-center text-black shadow-neo-sm group-hover:bg-black group-hover:text-white transition-colors">
+                <ShieldCheck className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Campus Safety & Healthcare</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Uni-Hospital round-the-clock emergency protocols, campus security posts, and anti-ragging redressal contacts.
+              <h3 className="text-base font-black uppercase text-black">Safety & Uni-Hospital</h3>
+              <p className="text-xs font-medium text-black leading-relaxed">
+                24/7 Uni-Hospital (Block 30), resident doctor emergency triage, ambulance, and zero-tolerance anti-ragging cell.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100">
-              <Link href="/safety" className="inline-flex items-center text-xs font-semibold text-rose-600 hover:text-rose-800">
-                Check Safety Contacts <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
+            <div className="mt-4 pt-3 border-t-2 border-black flex items-center justify-between text-xs font-black text-black">
+              <span>SAFETY PROTOCOLS</span>
+              <ArrowRight className="h-4 w-4" />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Announcements & Happenings Preview */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between border-b pb-3">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Campus News & Public Events</h2>
-            <p className="text-xs text-slate-500">Official bulletins and upcoming freshmen activities</p>
-          </div>
-          <Link href="/announcements" className="text-xs font-semibold text-indigo-600 hover:underline">
-            View All Announcements
           </Link>
         </div>
+      </section>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Latest Announcement */}
-          <div className="card border-slate-200 p-5 space-y-3">
-            <div className="flex items-center gap-2 text-indigo-700 text-xs font-semibold">
-              <BellRing className="h-4 w-4" />
-              <span>Latest Announcement</span>
-            </div>
-            {announcements.length > 0 ? (
-              <div className="space-y-1">
-                <h4 className="font-semibold text-slate-900 text-sm">{announcements[0].title}</h4>
-                <p className="text-xs text-slate-600 line-clamp-2">{announcements[0].summary || announcements[0].content}</p>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500">No active announcements posted right now. Check back soon.</p>
-            )}
-            <Link href="/announcements" className="inline-flex items-center text-xs text-indigo-600 hover:underline pt-1">
-              Read all notices <ArrowRight className="h-3 w-3 ml-1" />
+      {/* Quick Freshmen FAQs */}
+      <section>
+        <div className="card space-y-4">
+          <div className="flex items-center justify-between border-b-2 border-black pb-2">
+            <h3 className="text-base font-black uppercase text-black flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-lpu-orange" />
+              <span>Quick Freshmen FAQs</span>
+            </h3>
+            <Link href="/help" className="text-xs font-black text-lpu-darkOrange underline">
+              VIEW ALL FAQS
             </Link>
           </div>
-
-          {/* Upcoming Event */}
-          <div className="card border-slate-200 p-5 space-y-3">
-            <div className="flex items-center gap-2 text-purple-700 text-xs font-semibold">
-              <CalendarCheck2 className="h-4 w-4" />
-              <span>Upcoming Event</span>
-            </div>
-            {upcomingEvents.length > 0 ? (
-              <div className="space-y-1">
-                <h4 className="font-semibold text-slate-900 text-sm">{upcomingEvents[0].name}</h4>
-                <p className="text-xs text-slate-500">
-                  {new Date(upcomingEvents[0].startsAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" })} · {upcomingEvents[0].venue}
-                </p>
-                <p className="text-xs text-slate-600 line-clamp-2">{upcomingEvents[0].description}</p>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500">No public events scheduled currently.</p>
-            )}
-            <Link href="/events" className="inline-flex items-center text-xs text-purple-600 hover:underline pt-1">
-              Explore event calendar <ArrowRight className="h-3 w-3 ml-1" />
+          <div className="grid gap-2.5 sm:grid-cols-3 text-xs font-bold text-black">
+            <Link href="/help" className="block rounded-lg border-2 border-black bg-white p-3 shadow-neo-sm hover:bg-lpu-yellow transition-colors">
+              👉 What is the 75% attendance policy and debarment rule?
+            </Link>
+            <Link href="/help" className="block rounded-lg border-2 border-black bg-white p-3 shadow-neo-sm hover:bg-lpu-yellow transition-colors">
+              👉 How do I apply for a weekend home leave pass on UMS?
+            </Link>
+            <Link href="/help" className="block rounded-lg border-2 border-black bg-white p-3 shadow-neo-sm hover:bg-lpu-yellow transition-colors">
+              👉 What time does the hostel gate turnstile close at night?
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Official Verified University Resources */}
-      <section className="space-y-4">
+      {/* Sourcing Banner */}
+      <div className="rounded-xl border-3 border-black bg-lpu-yellow p-4 text-xs font-bold text-black shadow-neo flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Direct Links to Official LPU Portals</h2>
-          <p className="text-xs text-slate-500">
-            Always verify academic dates, fee deadlines, and exam timetables directly on university systems.
-          </p>
+          Official administrative portal logins, grades, and fee transactions are processed exclusively via LPU Touch &amp; UMS.
         </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Object.entries(sources).slice(0, 8).map(([key, s]) => (
-            <a
-              key={key}
-              href={s.sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="card p-4 hover:border-indigo-300 hover:shadow-sm transition-all group flex items-start justify-between"
-            >
-              <div>
-                <h4 className="font-semibold text-slate-900 text-xs group-hover:text-indigo-600 transition-colors">
-                  {s.sourceName}
-                </h4>
-                <span className="text-[10px] text-slate-400 mt-1 block">Official university link</span>
-              </div>
-              <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-indigo-600 shrink-0" />
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* Frequently Asked Questions */}
-      <section className="space-y-4">
-        <div className="text-center max-w-xl mx-auto space-y-1">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Frequently Asked Questions</h2>
-          <p className="text-xs text-slate-500">Common questions from arriving freshmen and parents</p>
-        </div>
-
-        <div className="max-w-3xl mx-auto space-y-3">
-          <details className="card p-4 group cursor-pointer">
-            <summary className="font-semibold text-xs sm:text-sm text-slate-900 flex items-center justify-between">
-              <span>Is this an official LPU portal?</span>
-              <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
-            </summary>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-              No. This is an independent, open-source campus guide created to help new students navigate campus life. All administrative procedures (fees, attendance, grades) are handled exclusively via official university portals (e.g. UMS).
-            </p>
-          </details>
-
-          <details className="card p-4 group cursor-pointer">
-            <summary className="font-semibold text-xs sm:text-sm text-slate-900 flex items-center justify-between">
-              <span>Should I enter my UMS password here?</span>
-              <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
-            </summary>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed font-semibold text-amber-700">
-              Never! Do not share your official LPU credentials on any third-party website. The account you create here is strictly for saving your onboarding progress and personal bookmarks on this guide.
-            </p>
-          </details>
-
-          <details className="card p-4 group cursor-pointer">
-            <summary className="font-semibold text-xs sm:text-sm text-slate-900 flex items-center justify-between">
-              <span>How do I get help if I am stuck on campus?</span>
-              <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
-            </summary>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-              Visit the <Link href="/safety" className="text-indigo-600 underline">Safety & Healthcare page</Link> for hospital contact numbers, or head to Block 30 (Student Welfare / Helpdesk).
-            </p>
-          </details>
-        </div>
-      </section>
-
-      {/* Call to Action Banner */}
-      <section className="rounded-2xl bg-indigo-50 border border-indigo-100 p-8 text-center space-y-4">
-        <h3 className="text-xl sm:text-2xl font-bold text-slate-900">Ready to start your freshman journey?</h3>
-        <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
-          Sign up for a free guide account to save campus landmarks, track your induction tasks, and personalize your student feed.
-        </p>
-        <div className="flex justify-center gap-3 pt-2">
-          <Link href="/signup" className="btn px-6 py-2.5 text-sm font-semibold">
-            Get Started Now
-          </Link>
-          <Link href="/login" className="btn bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 text-sm">
-            Sign In
-          </Link>
-        </div>
-      </section>
+        <a 
+          href={sources.ums.sourceUrl} 
+          target="_blank" 
+          rel="noreferrer" 
+          className="btn btn-black text-xs px-3 py-1.5 shrink-0"
+        >
+          <span>Official UMS</span>
+          <ExternalLink className="h-3.5 w-3.5 ml-1" />
+        </a>
+      </div>
     </div>
   );
 }
