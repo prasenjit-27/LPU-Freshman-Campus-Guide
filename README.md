@@ -20,7 +20,7 @@ Next.js 14 (App Router, JavaScript only) + Tailwind CSS + MongoDB driver + NextA
    * `MONGODB_URI`: Your MongoDB instance or Atlas connection string.
    * `NEXTAUTH_SECRET`: Generate with `openssl rand -base64 32`.
    * `NEXTAUTH_URL`: `http://localhost:3000` (or your production deployment domain).
-   * `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: Browser-restricted Google Maps API key (requires Maps JavaScript API and Directions API enabled). Graceful fallback is included if omitted.
+   * Map rendering requires zero API keys (powered by OpenFreeMap + MapLibre GL JS).
 
 3. **Run Development Server**:
    ```bash
@@ -61,11 +61,8 @@ The `/admin` portal is dedicated **strictly to user management**:
 
 ---
 
-## 4. Google Maps API Configuration & Quotas
-
-* Go to the [Google Cloud Console](https://console.cloud.google.com/).
-* Enable **Maps JavaScript API** and **Directions API**.
-* Create an API Key and set **Application restrictions** to **HTTP referrers (web sites)**:
-  * `http://localhost:3000/*`
-  * `https://your-production-domain.com/*`
-* If the API key is not configured, the app provides a graceful directory view without breaking or crashing the interface.
+## 4. Campus Map Engine (OpenFreeMap + MapLibre GL JS)
+ 
+* The interactive campus map is powered by **MapLibre GL JS** and **OpenFreeMap** using the `https://tiles.openfreemap.org/styles/liberty` vector tile style.
+* **100% Free & Open-Source**: Requires zero Google Maps API keys, credit cards, billing quotas, or rate-limiting restrictions.
+* Includes built-in walking route navigation (via OSRM footway routing), GPS centering, custom building markers, and interactive info popups.

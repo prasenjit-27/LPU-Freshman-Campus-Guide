@@ -16,9 +16,7 @@ import {
   LogIn, 
   UserPlus,
   Bus,
-  HelpCircle,
-  BellRing,
-  Sparkles
+  HelpCircle
 } from "lucide-react";
 
 const publicLinks = [
@@ -60,23 +58,25 @@ export default function Nav({ user }) {
           </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <div className="hidden lg:flex items-center gap-1.5 text-xs font-black uppercase text-black">
-          {publicLinks.map((link) => (
-            <Link 
-              key={link.href}
-              href={link.href} 
-              className="px-2.5 py-1.5 rounded-lg border-2 border-transparent hover:border-black hover:bg-lpu-soft hover:shadow-neo-sm transition-all"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
+        {/* Desktop Navigation Links - ONLY shown if user is logged in */}
+        {user && (
+          <div className="hidden lg:flex items-center gap-1.5 text-xs font-black uppercase text-black">
+            {publicLinks.map((link) => (
+              <Link 
+                key={link.href}
+                href={link.href} 
+                className="px-2.5 py-1.5 rounded-lg border-2 border-transparent hover:border-black hover:bg-lpu-soft hover:shadow-neo-sm transition-all"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Auth CTA & User Menu */}
-        <div className="hidden sm:flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5">
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               <Link 
                 href="/dashboard" 
                 className="flex items-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-1.5 text-xs font-black uppercase text-black shadow-neo-sm hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-neo transition-all"
@@ -110,25 +110,27 @@ export default function Nav({ user }) {
                 className="btn btn-yellow text-xs px-3.5 py-1.5"
               >
                 <UserPlus className="h-3.5 w-3.5 mr-1" />
-                <span>Join Free</span>
+                <span>Sign Up</span>
               </Link>
             </div>
           )}
-        </div>
 
-        {/* Mobile menu button */}
-        <button
-          type="button"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden flex items-center justify-center p-2 rounded-lg border-2 border-black bg-lpu-yellow text-black shadow-neo-sm"
-          aria-label="Toggle menu"
-        >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          {/* Mobile menu button - ONLY shown if user is logged in */}
+          {user && (
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden flex items-center justify-center p-2 rounded-lg border-2 border-black bg-lpu-yellow text-black shadow-neo-sm"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          )}
+        </div>
       </nav>
 
-      {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
+      {/* Mobile Menu Drawer - ONLY rendered if user is logged in */}
+      {user && mobileMenuOpen && (
         <div className="lg:hidden border-t-3 border-black bg-[#FFFDF9] px-4 py-4 space-y-4 shadow-neo-lg">
           <div className="grid grid-cols-2 gap-2 text-xs font-black uppercase">
             {publicLinks.map((link) => {
@@ -147,41 +149,21 @@ export default function Nav({ user }) {
             })}
           </div>
 
-          <div className="pt-2 border-t-2 border-black flex flex-col gap-2">
-            {user ? (
-              <div className="flex items-center justify-between">
-                <Link 
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-yellow w-full text-xs"
-                >
-                  Dashboard ({user.name})
-                </Link>
-                <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="p-2 ml-2 border-2 border-black rounded-lg bg-rose-200"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Link 
-                  href="/login" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-white flex-1 text-xs"
-                >
-                  Log In
-                </Link>
-                <Link 
-                  href="/signup" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-yellow flex-1 text-xs"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
+          <div className="pt-2 border-t-2 border-black flex items-center justify-between">
+            <Link 
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="btn btn-yellow w-full text-xs"
+            >
+              Dashboard ({user.name})
+            </Link>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="p-2 ml-2 border-2 border-black rounded-lg bg-rose-200"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

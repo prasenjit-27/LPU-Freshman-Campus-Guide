@@ -256,35 +256,6 @@ export default function StudentDashboard({
         </div>
       </section>
 
-      {/* Events Section */}
-      <section>
-        <div className="card space-y-3">
-          <div className="flex items-center justify-between border-b-2 border-black pb-2">
-            <h3 className="text-sm font-black uppercase text-black flex items-center gap-1.5">
-              <CalendarCheck2 className="h-4 w-4 text-lpu-orange" />
-              Upcoming Events &amp; Sessions
-            </h3>
-            <Link href="/events" className="text-xs font-black text-lpu-darkOrange underline">View all</Link>
-          </div>
-          {upcomingEvents.length > 0 ? (
-            <ul className="grid gap-2 sm:grid-cols-2 text-xs">
-              {upcomingEvents.map((e) => (
-                <li key={e._id} className="rounded border-2 border-black bg-white p-2.5 shadow-neo-sm">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-black text-black">{e.name}</h4>
-                    <span className="neo-badge neo-badge-yellow text-[9px]">
-                      {new Date(e.startsAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
-                    </span>
-                  </div>
-                  <p className="text-black/70 text-[11px] mt-0.5">{e.venue} — {e.description?.slice(0, 80)}...</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-xs font-bold text-black/60 py-4 text-center">No events listed on schedule.</p>
-          )}
-        </div>
-      </section>
 
       {/* Official Notice Disclaimer */}
       <div className="rounded-xl border-3 border-black bg-lpu-yellow p-4 text-xs font-bold text-black shadow-neo flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

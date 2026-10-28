@@ -1,410 +1,403 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Script from "next/script";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { 
-  Search, 
-  MapPin, 
-  Navigation, 
-  Star, 
-  AlertCircle, 
-  ExternalLink, 
-  Compass, 
+  Box, 
+  RotateCcw, 
   LocateFixed, 
-  Route, 
-  CheckCircle2, 
-  Info 
+  Layers, 
+  MapPin, 
+  ExternalLink,
+  AlertCircle 
 } from "lucide-react";
+import { lpuCampusBoundary, lpu3DBuildings } from "@/data/campus3dBuildings";
 
-export default function MapView({ locations = [], signedIn = false, savedIds = [] }) {
+// LPU Coordinates & Focus Bounds
+const LPU_CENTER_LNG = 75.7037;
+const LPU_CENTER_LAT = 31.2536;
+
+export default function MapView({ locations = [] }) {
   const mapElementRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const dirRendererRef = useRef(null);
   const markersRef = useRef([]);
-
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const userMarkerRef = useRef(null);
 
   const [mapLoaded, setMapLoaded] = useState(false);
   const [err, setErr] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [saved, setSaved] = useState(savedIds);
-  const [fromId, setFromId] = useState("");
-  const [toId, setToId] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
-  const [routingInProgress, setRoutingInProgress] = useState(false);
+  const [selectedSpot, setSelectedSpot] = useState(null);
+  const [is3D, setIs3D] = useState(true);
+  const [mapTheme, setMapTheme] = useState("street"); // "street" | "satellite"
 
-  // Extract categories dynamically
-  const categories = useMemo(() => {
-    return ["all", ...new Set(locations.map((l) => l.category).filter(Boolean))];
-  }, [locations]);
+  // Base map tiles (100% free, reliable, no API key required)
+  const mapStyle = useMemo(() => {
+    const tileUrl = mapTheme === "satellite"
+      ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 
-  // Filter locations
-  const filteredLocations = useMemo(() => {
-    return locations.filter((loc) => {
-      const matchCat = activeCategory === "all" || loc.category === activeCategory;
-      const matchQuery = loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (loc.description && loc.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchCat && matchQuery;
-    });
-  }, [locations, activeCategory, searchQuery]);
+    return {
+      version: 8,
+      name: "LPU 3D Map",
+      sources: {
+        "base-tiles": {
+          type: "raster",
+          tiles: [tileUrl],
+          tileSize: 256,
+          attribution: "© OpenStreetMap contributors, Esri"
+        },
+        "lpu-boundary": {
+          type: "geojson",
+          data: lpuCampusBoundary
+        },
+        "lpu-3d-buildings": {
+          type: "geojson",
+          data: lpu3DBuildings
+        }
+      },
+      layers: [
+        // 1. Photographic Base Tiles
+        {
+          id: "base-tiles-layer",
+          type: "raster",
+          source: "base-tiles",
+          minzoom: 0,
+          maxzoom: 20
+        },
+        // 2. 600+ Acre LPU Perimeter Outline
+        {
+          id: "lpu-boundary-fill",
+          type: "fill",
+          source: "lpu-boundary",
+          paint: {
+            "fill-color": "#FFA04D",
+            "fill-opacity": 0.08
+          }
+        },
+        {
+          id: "lpu-boundary-stroke",
+          type: "line",
+          source: "lpu-boundary",
+          paint: {
+            "line-color": "#F37021",
+            "line-width": 3,
+            "line-dasharray": [2, 2]
+          }
+        },
+        // 3. 3D Extruded Building Models with Heights & LPU Brand Colors
+        {
+          id: "lpu-3d-buildings-extrusion",
+          type: "fill-extrusion",
+          source: "lpu-3d-buildings",
+          paint: {
+            "fill-extrusion-color": ["get", "color"],
+            "fill-extrusion-height": ["get", "height"],
+            "fill-extrusion-base": ["get", "min_height"],
+            "fill-extrusion-opacity": 0.92
+          }
+        }
+      ]
+    };
+  }, [mapTheme]);
 
-  // Initialize Map once window.google is ready
-  const initializeMap = () => {
-    if (!window.google?.maps || !mapElementRef.current) return;
-
-    try {
-      // Default center: LPU Campus or first location
-      const defaultCenter = locations.length > 0 && locations[0].lat && locations[0].lng
-        ? { lat: Number(locations[0].lat), lng: Number(locations[0].lng) }
-        : { lat: 31.2536, lng: 75.7037 }; // LPU Phagwara coordinates
-
-      const map = new window.google.maps.Map(mapElementRef.current, {
-        center: defaultCenter,
-        zoom: 16,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-      });
-
-      mapInstanceRef.current = map;
-      dirRendererRef.current = new window.google.maps.DirectionsRenderer({ map });
-
-      // Clean existing markers
-      markersRef.current.forEach((m) => m.setMap(null));
-      markersRef.current = [];
-
-      // Add markers
-      locations.forEach((loc) => {
-        if (!loc.lat || !loc.lng) return;
-        const marker = new window.google.maps.Marker({
-          position: { lat: Number(loc.lat), lng: Number(loc.lng) },
-          map,
-          title: loc.name,
-          animation: window.google.maps.Animation.DROP,
-        });
-
-        marker.addListener("click", () => {
-          setSelectedLocation(loc);
-        });
-
-        markersRef.current.push(marker);
-      });
-
-      setMapLoaded(true);
-    } catch (e) {
-      console.error("Map initialization failed:", e);
-      setErr("Failed to initialize Google Maps. Please check browser console.");
-    }
-  };
-
+  // Initialize MapLibre GL instance
   useEffect(() => {
-    if (window.google?.maps && mapElementRef.current && !mapInstanceRef.current) {
-      initializeMap();
-    }
-  }, [locations]);
+    if (!mapElementRef.current) return;
 
-  // Pan to location
-  function focusLocation(loc) {
-    setSelectedLocation(loc);
-    if (mapInstanceRef.current && loc.lat && loc.lng) {
-      mapInstanceRef.current.panTo({ lat: Number(loc.lat), lng: Number(loc.lng) });
-      mapInstanceRef.current.setZoom(17);
-    }
-  }
+    let isMounted = true;
+    let map = null;
 
-  // Toggle saved spot
-  async function toggleSave(loc) {
-    if (!signedIn) return;
-    try {
-      const r = await fetch("/api/saved", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locationId: loc._id }),
-      });
-      if (r.ok) {
-        const { saved: isSaved } = await r.json();
-        setSaved((prev) => (isSaved ? [...prev, loc._id] : prev.filter((id) => id !== loc._id)));
-      }
-    } catch {
-      setStatusMessage("Could not update bookmark.");
-    }
-  }
+    const initMap = async () => {
+      try {
+        const mod = await import("maplibre-gl");
+        const maplibregl = mod.default || mod;
 
-  // Calculate walking directions
-  function calculateRoute() {
-    const originLoc = locations.find((l) => l._id === fromId);
-    const destLoc = locations.find((l) => l._id === toId);
+        if (!isMounted || !mapElementRef.current) return;
 
-    if (!originLoc || !destLoc) {
-      setStatusMessage("Please select both starting point and destination.");
-      return;
-    }
-
-    if (!window.google?.maps) {
-      setStatusMessage("Map service is not active. Walking directions unavailable.");
-      return;
-    }
-
-    setRoutingInProgress(true);
-    setStatusMessage("");
-
-    const directionsService = new window.google.maps.DirectionsService();
-    directionsService.route(
-      {
-        origin: { lat: Number(originLoc.lat), lng: Number(originLoc.lng) },
-        destination: { lat: Number(destLoc.lat), lng: Number(destLoc.lng) },
-        travelMode: window.google.maps.TravelMode.WALKING,
-      },
-      (result, status) => {
-        setRoutingInProgress(false);
-        if (status === "OK") {
-          dirRendererRef.current.setDirections(result);
-          setStatusMessage("Calculated outdoor walking path.");
-        } else {
-          setStatusMessage(`No walking route found (${status}).`);
-        }
-      }
-    );
-  }
-
-  // Geolocation centering
-  function centerOnUser() {
-    if (!navigator.geolocation) {
-      setStatusMessage("Geolocation not supported by your browser.");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        // Clean up previous instance if any
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.panTo(coords);
-          mapInstanceRef.current.setZoom(17);
-          new window.google.maps.Marker({
-            position: coords,
-            map: mapInstanceRef.current,
-            title: "Your Location",
-            icon: {
-              path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 7,
-              fillColor: "#4f46e5",
-              fillOpacity: 1,
-              strokeColor: "#ffffff",
-              strokeWeight: 2,
-            },
-          });
+          mapInstanceRef.current.remove();
+          mapInstanceRef.current = null;
         }
-        setStatusMessage("Centered on your current location.");
-      },
-      () => {
-        setStatusMessage("Location access denied or unavailable.");
+
+        map = new maplibregl.Map({
+          container: mapElementRef.current,
+          style: mapStyle,
+          center: [LPU_CENTER_LNG, LPU_CENTER_LAT],
+          zoom: 16.5,
+          pitch: is3D ? 58 : 0,
+          bearing: is3D ? -18 : 0,
+          maxPitch: 70,
+          attributionControl: false
+        });
+
+        map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+        map.addControl(new maplibregl.NavigationControl({ showCompass: true, visualizePitch: true }), "top-right");
+
+        map.on("load", () => {
+          if (!isMounted) return;
+          mapInstanceRef.current = map;
+          setMapLoaded(true);
+
+          // Click on 3D building to select
+          map.on("click", "lpu-3d-buildings-extrusion", (e) => {
+            if (e.features && e.features.length > 0) {
+              const bldg = e.features[0].properties;
+              setSelectedSpot({
+                name: bldg.name,
+                category: bldg.category,
+                height: `${bldg.height}m`
+              });
+            }
+          });
+
+          map.on("mouseenter", "lpu-3d-buildings-extrusion", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "lpu-3d-buildings-extrusion", () => {
+            map.getCanvas().style.cursor = "";
+          });
+        });
+
+        map.on("error", (e) => {
+          console.warn("Map event notice:", e);
+        });
+      } catch (e) {
+        console.error("Map initialization failed:", e);
+        if (isMounted) {
+          setErr("Failed to initialize campus map: " + (e?.message || ""));
+        }
       }
+    };
+
+    initMap();
+
+    return () => {
+      isMounted = false;
+      if (map) {
+        map.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [mapStyle, is3D]);
+
+  // Add 3D Pin Markers on LPU buildings
+  useEffect(() => {
+    if (!mapLoaded || !mapInstanceRef.current) return;
+
+    let isMounted = true;
+
+    const renderMarkers = async () => {
+      try {
+        const mod = await import("maplibre-gl");
+        const maplibregl = mod.default || mod;
+
+        if (!isMounted || !mapInstanceRef.current) return;
+        const map = mapInstanceRef.current;
+
+        markersRef.current.forEach((m) => m.remove());
+        markersRef.current = [];
+
+        locations.forEach((loc) => {
+          if (!loc.lat || !loc.lng) return;
+
+          const el = document.createElement("div");
+          el.className = "cursor-pointer group relative";
+
+          el.innerHTML = `
+            <div class="flex items-center justify-center w-7 h-7 rounded-full border-2 border-black bg-amber-400 hover:bg-orange-500 hover:text-white text-black shadow-[2px_2px_0px_0px_#000] transition-all transform duration-150">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <div class="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-white opacity-0 group-hover:opacity-100 transition-opacity z-40 shadow-sm">
+              ${loc.name}
+            </div>
+          `;
+
+          const popupHtml = `
+            <div class="p-2 space-y-1.5 max-w-[240px] font-sans">
+              <span class="inline-block text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                ${loc.category || "Campus Location"}
+              </span>
+              <h4 class="text-xs font-black text-slate-900 leading-snug">${loc.name}</h4>
+              ${loc.description ? `<p class="text-[11px] text-slate-600 line-clamp-3 leading-relaxed">${loc.description}</p>` : ""}
+              <div class="pt-1 border-t border-slate-200 text-[10px] font-bold text-orange-600">
+                📍 [${Number(loc.lat).toFixed(4)}, ${Number(loc.lng).toFixed(4)}]
+              </div>
+            </div>
+          `;
+
+          const popup = new maplibregl.Popup({
+            offset: 20,
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: "280px"
+          }).setHTML(popupHtml);
+
+          const marker = new maplibregl.Marker({ element: el, anchor: "center" })
+            .setLngLat([Number(loc.lng), Number(loc.lat)])
+            .setPopup(popup)
+            .addTo(map);
+
+          el.addEventListener("click", () => {
+            setSelectedSpot(loc);
+          });
+
+          markersRef.current.push(marker);
+        });
+      } catch (e) {
+        console.warn("Marker creation notice:", e);
+      }
+    };
+
+    renderMarkers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [locations, mapLoaded]);
+
+  // Toggle between 3D Tilt and 2D Plan view
+  function toggle3D() {
+    if (!mapInstanceRef.current) return;
+    const next3D = !is3D;
+    setIs3D(next3D);
+
+    mapInstanceRef.current.easeTo({
+      pitch: next3D ? 58 : 0,
+      bearing: next3D ? -18 : 0,
+      duration: 800
+    });
+  }
+
+  // Toggle Satellite vs Street map tiles
+  function toggleTheme() {
+    setMapTheme((prev) => (prev === "street" ? "satellite" : "street"));
+  }
+
+  // Reset to default LPU campus angle
+  function resetCampusView() {
+    if (!mapInstanceRef.current) return;
+    mapInstanceRef.current.flyTo({
+      center: [LPU_CENTER_LNG, LPU_CENTER_LAT],
+      zoom: 16.5,
+      pitch: 58,
+      bearing: -18,
+      essential: true
+    });
+    setIs3D(true);
+  }
+
+  // Center on user GPS position
+  async function centerOnUser() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = [pos.coords.longitude, pos.coords.latitude];
+        const map = mapInstanceRef.current;
+        if (!map) return;
+
+        const mod = await import("maplibre-gl");
+        const maplibregl = mod.default || mod;
+
+        map.flyTo({ center: coords, zoom: 17.5, pitch: 58, essential: true });
+
+        if (userMarkerRef.current) {
+          userMarkerRef.current.setLngLat(coords);
+        } else {
+          const el = document.createElement("div");
+          el.className = "flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 border-2 border-white shadow-md animate-pulse";
+          el.innerHTML = `<div class="w-2.5 h-2.5 rounded-full bg-white"></div>`;
+          userMarkerRef.current = new maplibregl.Marker({ element: el }).setLngLat(coords).addTo(map);
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000 }
     );
   }
 
   return (
-    <>
-      {/* Safely inject Google Maps JavaScript API via Next.js Script */}
-      {apiKey && (
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`}
-          strategy="lazyOnload"
-          onLoad={initializeMap}
-          onError={() => setErr("Google Maps script failed to load. Check API restrictions & billing.")}
-        />
-      )}
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Left Side: Directory, Search, Filters & Directions */}
-        <div className="card border-slate-200 shadow-sm p-4 space-y-4 lg:col-span-1 max-h-[80vh] flex flex-col">
-          <div className="space-y-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="text"
-                className="input pl-9 text-xs"
-                placeholder="Search campus buildings, blocks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <select
-              className="input text-xs"
-              value={activeCategory}
-              onChange={(e) => setActiveCategory(e.target.value)}
-              aria-label="Filter by category"
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c === "all" ? "All Categories" : c.toUpperCase()}
-                </option>
-              ))}
-            </select>
+    <div className="space-y-3">
+      {/* 3D Map Canvas - Full Width */}
+      <div className="relative rounded-2xl border-4 border-black overflow-hidden bg-slate-100 shadow-neo min-h-[580px] h-[80vh]">
+        {/* Floating Controls at Top */}
+        <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2">
+          {/* Badge */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black text-black">
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping inline-block" />
+            <span>LPU 3D Campus • 600+ Acres</span>
           </div>
 
-          {/* Locations List */}
-          <div className="flex-1 overflow-y-auto space-y-1 pr-1 divide-y divide-slate-100">
-            {filteredLocations.length === 0 ? (
-              <p className="text-xs text-slate-500 py-6 text-center">
-                {locations.length === 0 ? "No verified locations found in database." : "No locations match your filter."}
-              </p>
-            ) : (
-              filteredLocations.map((loc) => {
-                const isSelected = selectedLocation?._id === loc._id;
-                const isSaved = saved.includes(loc._id);
-                return (
-                  <div
-                    key={loc._id}
-                    className={`flex items-center justify-between p-2 rounded-lg text-xs transition-colors ${
-                      isSelected ? "bg-indigo-50 font-semibold text-indigo-900" : "hover:bg-slate-50 text-slate-700"
-                    }`}
-                  >
-                    <button
-                      onClick={() => focusLocation(loc)}
-                      className="flex-1 text-left truncate flex items-center gap-1.5"
-                    >
-                      <MapPin className={`h-3.5 w-3.5 shrink-0 ${isSelected ? "text-indigo-600" : "text-slate-400"}`} />
-                      <span className="truncate">{loc.name}</span>
-                    </button>
+          {/* 3D / 2D Toggle Button */}
+          <button
+            onClick={toggle3D}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
+          >
+            <Box className="h-3.5 w-3.5" />
+            <span>{is3D ? "3D View ON" : "2D Plan View"}</span>
+          </button>
 
-                    {signedIn && (
-                      <button
-                        onClick={() => toggleSave(loc)}
-                        className={`p-1 rounded hover:bg-slate-200/50 transition-colors ${
-                          isSaved ? "text-amber-500" : "text-slate-300 hover:text-slate-500"
-                        }`}
-                        title={isSaved ? "Remove bookmark" : "Save location"}
-                      >
-                        <Star className="h-3.5 w-3.5 fill-current" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
+          {/* Map Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
+          >
+            <Layers className="h-3.5 w-3.5" />
+            <span className="capitalize">{mapTheme === "street" ? "Satellite View" : "Street View"}</span>
+          </button>
 
-          {/* Directions Tool */}
-          {locations.length > 1 && (
-            <div className="border-t border-slate-100 pt-3 space-y-2 text-xs">
-              <span className="font-semibold text-slate-800 flex items-center gap-1">
-                <Route className="h-3.5 w-3.5 text-indigo-600" />
-                Walking Route Finder
-              </span>
+          {/* Reset Campus View */}
+          <button
+            onClick={resetCampusView}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
+            title="Reset full campus view"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Reset View</span>
+          </button>
 
-              <div className="grid grid-cols-2 gap-1.5">
-                <select
-                  value={fromId}
-                  onChange={(e) => setFromId(e.target.value)}
-                  className="input text-xs"
-                  aria-label="Starting location"
-                >
-                  <option value="">Start from...</option>
-                  {locations.map((l) => (
-                    <option key={l._id} value={l._id}>{l.name}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={toId}
-                  onChange={(e) => setToId(e.target.value)}
-                  className="input text-xs"
-                  aria-label="Destination location"
-                >
-                  <option value="">Destination...</option>
-                  {locations.map((l) => (
-                    <option key={l._id} value={l._id}>{l.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={calculateRoute}
-                  disabled={routingInProgress}
-                  className="btn py-1.5 px-3 text-xs flex-1 justify-center"
-                >
-                  {routingInProgress ? "Calculating..." : "Get Walking Route"}
-                </button>
-                <button
-                  onClick={centerOnUser}
-                  className="btn bg-slate-100 text-slate-700 hover:bg-slate-200 py-1.5 px-2.5 text-xs"
-                  title="Center map on my GPS location"
-                >
-                  <LocateFixed className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {statusMessage && (
-            <p className="text-[11px] text-slate-500 italic bg-slate-50 p-2 rounded border border-slate-100">
-              {statusMessage}
-            </p>
-          )}
+          {/* Center GPS */}
+          <button
+            onClick={centerOnUser}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
+            title="Locate my position on campus"
+          >
+            <LocateFixed className="h-3.5 w-3.5" />
+            <span>Locate Me</span>
+          </button>
         </div>
 
-        {/* Right Side: Map Canvas & Location Details */}
-        <div className="lg:col-span-2 space-y-3">
-          <div className="relative rounded-2xl border border-slate-200 overflow-hidden bg-slate-100 shadow-sm min-h-[550px] h-[75vh]">
-            {!apiKey && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-slate-50/95 space-y-3">
-                <div className="rounded-full bg-amber-100 p-3 text-amber-600">
-                  <AlertCircle className="h-6 w-6" />
-                </div>
-                <h4 className="text-sm font-bold text-slate-800">Google Maps API Key Not Configured</h4>
-                <p className="text-xs text-slate-600 max-w-sm leading-relaxed">
-                  The interactive canvas requires an active <code className="bg-slate-200 px-1 py-0.5 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>. You can still use the verified building directory on the left.
-                </p>
-              </div>
-            )}
-
-            {err && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-red-50/95 text-red-700 space-y-2">
-                <AlertCircle className="h-6 w-6" />
-                <p className="text-xs font-semibold">{err}</p>
-              </div>
-            )}
-
-            <div ref={mapElementRef} className="h-full w-full" />
+        {err && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-red-50/95 text-red-700 space-y-2">
+            <AlertCircle className="h-6 w-6" />
+            <p className="text-xs font-semibold">{err}</p>
           </div>
+        )}
 
-          {/* Selected Location Card */}
-          {selectedLocation && (
-            <div className="card border-slate-200 shadow-sm p-4 text-xs space-y-2 bg-white">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">{selectedLocation.name}</h4>
-                  <span className="text-[11px] text-indigo-600 font-semibold capitalize">{selectedLocation.category}</span>
-                </div>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.lat},${selectedLocation.lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-1 px-2.5 text-[11px] font-medium flex items-center gap-1"
-                >
-                  <span>Open in Google Maps App</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-
-              {selectedLocation.description && (
-                <p className="text-slate-600 leading-relaxed">{selectedLocation.description}</p>
-              )}
-
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <span>Verification: <strong className="text-slate-600 capitalize">{selectedLocation.verificationStatus || "verified"}</strong></span>
-                {selectedLocation.sourceUrl && (
-                  <a href={selectedLocation.sourceUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
-                    {selectedLocation.sourceName || "Source Link"}
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Map Container */}
+        <div ref={mapElementRef} className="h-full w-full" />
       </div>
-    </>
+
+      {/* Selected Location Card (If clicked) */}
+      {selectedSpot && (
+        <div className="card border-slate-200 shadow-sm p-4 text-xs space-y-2 bg-white flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="inline-block text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+              {selectedSpot.category || "Campus Landmark"}
+            </span>
+            <h4 className="text-sm font-black text-slate-900">{selectedSpot.name}</h4>
+            {selectedSpot.description && (
+              <p className="text-slate-600 max-w-2xl leading-relaxed">{selectedSpot.description}</p>
+            )}
+          </div>
+          <button
+            onClick={() => setSelectedSpot(null)}
+            className="btn bg-slate-100 text-slate-700 hover:bg-slate-200 py-1 px-3 text-xs border-2 border-black"
+          >
+            Close
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
