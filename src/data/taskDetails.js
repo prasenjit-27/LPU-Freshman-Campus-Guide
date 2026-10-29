@@ -170,7 +170,7 @@ export const taskDetails = {
         heading: "First Time Login Credentials",
         type: "list",
         items: [
-          "Portal URL: ums.lpu.in (or download the official LPU Touch mobile app).",
+          "Portal URL: https://ums.lpu.in/lpuums/ (or download the official LPU Touch mobile app).",
           "Default User ID: Your 8-digit Student Registration Number (e.g., 1240xxxx).",
           "Default Password: Provided in your admission SMS or format specified on your admission slip (you will be prompted to change it immediately).",
           "Security Warning: NEVER share your UMS credentials with anyone or enter them into unofficial apps."

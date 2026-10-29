@@ -16,7 +16,7 @@ export const defaultFaqs = [
   {
     question: "How do I log into UMS for the first time?",
     category: "UMS Portal",
-    answer: "Visit ums.lpu.in or download the LPU Touch mobile app. Your username is your 8-digit Student Registration Number. Your initial password is sent via SMS upon provisional admission. You will be prompted to reset your password and set recovery security questions on first login.",
+    answer: "Visit ums.lpu.in/lpuums or download the LPU Touch mobile app. Your username is your 8-digit Student Registration Number. Your initial password is sent via SMS upon provisional admission. You will be prompted to reset your password and set recovery security questions on first login.",
     sourceName: "UMS IT Portal",
     verificationStatus: "verified"
   },

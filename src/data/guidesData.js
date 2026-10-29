@@ -13,7 +13,7 @@ export const guidesData = {
         details: [
           {
             label: "First-Time Login",
-            text: "Access the portal at ums.lpu.in or download LPU Touch. Your Registration Number (8 digits) is your username. Enter your temporary password given on the admission slip, and configure your permanent password with 2-factor recovery."
+            text: "Access the portal at ums.lpu.in/lpuums or download LPU Touch. Your Registration Number (8 digits) is your username. Enter your temporary password given on the admission slip, and configure your permanent password with 2-factor recovery."
           },
           {
             label: "Time Table & Room Numbers",

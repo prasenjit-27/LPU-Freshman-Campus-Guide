@@ -5,7 +5,7 @@ export const sources = {
   reporting: mk("Reporting process", `${B}/events/freshmeninduction/reporting-process.php`),
   bring: mk("What to bring", `${B}/events/freshmeninduction/what-to-bring.php`),
   schedule: mk("Induction schedule", `${B}/events/freshmeninduction/minute-to-minute-schedule.php`),
-  ums: mk("UMS", `${B}/student-services/ums.php/`),
+  ums: mk("UMS", "https://ums.lpu.in/lpuums/"),
   calendar: mk("Academic calendars", `${B}/academics/calendar-regular-programmes.php/`),
   libraries: mk("Libraries", `${B}/academics/libraries.php`),
   residence: mk("Residence", `${B}/student-services/residence.php/`),

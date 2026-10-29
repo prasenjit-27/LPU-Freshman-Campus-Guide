@@ -85,6 +85,29 @@ export default function StudentDashboard({
 
       
 
+      {/* First 15 Days Progress (Without Progress Bar) */}
+      <section>
+        <div className="card p-5 border-4 border-black bg-white shadow-neo-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-black bg-lpu-yellow text-black shadow-neo-sm">
+              <CalendarCheck2 className="h-5 w-5 text-lpu-orange" />
+            </span>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-black uppercase text-black">First 15 Days Progress</h2>
+                <span className="neo-badge neo-badge-yellow">{taskPct}% Completed</span>
+              </div>
+              <p className="text-xs font-bold text-black/80">
+                {completedTaskCount} of {tasks.length} induction milestones completed.
+              </p>
+            </div>
+          </div>
+          <Link href="/freshmen-guide" className="btn btn-white text-xs px-4 py-2 shrink-0">
+            Open Checklist →
+          </Link>
+        </div>
+      </section>
+
       {/* Freshmen Resources Hub */}
       <section className="space-y-4">
         <div className="flex items-center justify-between border-b-4 border-black pb-2">
