@@ -18,7 +18,7 @@ export default async function RootLayout({ children }) {
   const session = await getServerSession(authOptions).catch(() => null);
 
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full scroll-smooth">
       <body className="flex min-h-full flex-col bg-[#FFFDF9] text-black antialiased selection:bg-lpu-yellow selection:text-black">
         <Nav user={session?.user || null} />
         

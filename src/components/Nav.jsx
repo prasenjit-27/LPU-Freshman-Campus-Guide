@@ -20,18 +20,32 @@ import {
 } from "lucide-react";
 
 const publicLinks = [
-  { href: "/campus-map", label: "Map", icon: MapPin },
-  { href: "/services", label: "Directory", icon: Bus },
-  { href: "/freshmen-guide", label: "First 15 Days", icon: CalendarCheck2 },
-  { href: "/academics", label: "Academics", icon: GraduationCap },
-  { href: "/hostel", label: "Hostel", icon: BedDouble },
-  { href: "/dining", label: "Dining", icon: UtensilsCrossed },
-  { href: "/safety", label: "Safety", icon: ShieldCheck },
-  { href: "/help", label: "FAQ", icon: HelpCircle },
+  { href: "/#directory", label: "Directory", icon: Bus },
+  { href: "/#first-15-days", label: "First 15 Days", icon: CalendarCheck2 },
+  { href: "/#academics", label: "Academics", icon: GraduationCap },
+  { href: "/#hostel", label: "Hostel", icon: BedDouble },
+  { href: "/#dining", label: "Dining", icon: UtensilsCrossed },
+  { href: "/#safety", label: "Safety", icon: ShieldCheck },
+  { href: "/#map", label: "Map", icon: MapPin },
+  { href: "/#faq", label: "FAQ", icon: HelpCircle },
 ];
 
 export default function Nav({ user }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleNavClick = (e, href) => {
+    if (href.startsWith("/#")) {
+      const targetId = href.replace("/#", "");
+      const elem = document.getElementById(targetId);
+      if (elem) {
+        e.preventDefault();
+        elem.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (window.history && window.history.pushState) {
+          window.history.pushState(null, "", href);
+        }
+      }
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b-4 border-black bg-[#FFFDF9]">
@@ -58,20 +72,19 @@ export default function Nav({ user }) {
           </div>
         </Link>
 
-        {/* Desktop Navigation Links - ONLY shown if user is logged in */}
-        {user && (
-          <div className="hidden lg:flex items-center gap-1.5 text-xs font-black uppercase text-black">
-            {publicLinks.map((link) => (
-              <Link 
-                key={link.href}
-                href={link.href} 
-                className="px-2.5 py-1.5 rounded-lg border-2 border-transparent hover:border-black hover:bg-lpu-soft hover:shadow-neo-sm transition-all"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        )}
+        {/* Desktop Anchor Navigation Links */}
+        <div className="hidden lg:flex items-center gap-1 text-xs font-black uppercase text-black">
+          {publicLinks.map((link) => (
+            <a 
+              key={link.href}
+              href={link.href} 
+              onClick={(e) => handleNavClick(e, link.href)}
+              className="px-2.5 py-1.5 rounded-lg border-2 border-transparent hover:border-black hover:bg-lpu-soft hover:shadow-neo-sm transition-all cursor-pointer"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
 
         {/* Auth CTA & User Menu */}
         <div className="flex items-center gap-2.5">
@@ -115,56 +128,52 @@ export default function Nav({ user }) {
             </div>
           )}
 
-          {/* Mobile menu button - ONLY shown if user is logged in */}
-          {user && (
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden flex items-center justify-center p-2 rounded-lg border-2 border-black bg-lpu-yellow text-black shadow-neo-sm"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          )}
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden flex items-center justify-center p-2 rounded-lg border-2 border-black bg-lpu-yellow text-black shadow-neo-sm"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer - ONLY rendered if user is logged in */}
-      {user && mobileMenuOpen && (
+      {/* Mobile Menu Drawer */}
+      {mobileMenuOpen && (
         <div className="lg:hidden border-t-3 border-black bg-[#FFFDF9] px-4 py-4 space-y-4 shadow-neo-lg">
           <div className="grid grid-cols-2 gap-2 text-xs font-black uppercase">
             {publicLinks.map((link) => {
               const Icon = link.icon;
               return (
-                <Link
+                <a
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 p-2.5 rounded-lg border-2 border-black bg-white hover:bg-lpu-soft shadow-neo-sm"
+                  onClick={(e) => {
+                    handleNavClick(e, link.href);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 p-2.5 rounded-lg border-2 border-black bg-white hover:bg-lpu-soft shadow-neo-sm cursor-pointer"
                 >
                   <Icon className="h-4 w-4 text-lpu-orange" />
                   <span>{link.label}</span>
-                </Link>
+                </a>
               );
             })}
           </div>
 
-          <div className="pt-2 border-t-2 border-black flex items-center justify-between">
-            <Link 
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="btn btn-yellow w-full text-xs"
-            >
-              Dashboard ({user.name})
-            </Link>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2 ml-2 border-2 border-black rounded-lg bg-rose-200"
-              title="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
+          {user && (
+            <div className="pt-2 border-t-2 border-black flex items-center justify-between">
+              <span className="text-xs font-black uppercase truncate">Signed in as {user.name}</span>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="p-2 ml-2 border-2 border-black rounded-lg bg-rose-200"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

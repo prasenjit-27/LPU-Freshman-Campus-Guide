@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
 import { authOptions } from "@/lib/auth";
 import { getDb, safeFind } from "@/lib/mongodb";
+import { defaultCampusLocations } from "@/data/campusLocations";
+import { defaultFaqs } from "@/data/faqsData";
 import PublicLanding from "@/components/PublicLanding";
 import StudentDashboard from "@/components/StudentDashboard";
 
@@ -10,18 +12,26 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const session = await getServerSession(authOptions).catch(() => null);
 
-  // Common public announcements and upcoming events
-  const [announcements, upcomingEvents] = await Promise.all([
+  // Common public announcements, upcoming events, campus locations, and FAQs
+  const [announcements, upcomingEvents, dbLocations, dbFaqs] = await Promise.all([
     safeFind("announcements", {}, 5),
     safeFind("events", { startsAt: { $gte: new Date() } }, 5),
+    safeFind("campusLocations", {}, 100),
+    safeFind("faqs", {}, 50)
   ]);
 
-  // Case 1: Unauthenticated Visitor -> Render Public Landing Dashboard
+  // Fallback to verified datasets if database collections are empty
+  const locations = dbLocations.length > 0 ? dbLocations : defaultCampusLocations.map((l, i) => ({ ...l, _id: `loc-${i}` }));
+  const faqs = dbFaqs.length > 0 ? dbFaqs : defaultFaqs.map((f, i) => ({ ...f, _id: `faq-${i}` }));
+
+  // Case 1: Unauthenticated Visitor -> Render All Sections in Public Landing on /
   if (!session) {
     return (
       <PublicLanding 
         announcements={announcements} 
         upcomingEvents={upcomingEvents} 
+        locations={locations}
+        faqs={faqs}
       />
     );
   }
@@ -68,6 +78,8 @@ export default async function HomePage() {
       savedLocations={savedLocations}
       announcements={announcements}
       upcomingEvents={upcomingEvents}
+      locations={locations}
+      faqs={faqs}
     />
   );
 }
