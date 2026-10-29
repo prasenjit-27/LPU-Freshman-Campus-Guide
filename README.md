@@ -63,6 +63,6 @@ The `/admin` portal is dedicated **strictly to user management**:
 
 ## 4. Campus Map Engine (OpenFreeMap + MapLibre GL JS)
  
-* The interactive campus map is powered by **MapLibre GL JS** and **OpenFreeMap** using the `https://tiles.openfreemap.org/styles/liberty` vector tile style.
+* The campus map is powered by **MapLibre GL JS** and **OpenFreeMap** using the `https://tiles.openfreemap.org/styles/liberty` vector tile style.
 * **100% Free & Open-Source**: Requires zero Google Maps API keys, credit cards, billing quotas, or rate-limiting restrictions.
-* Includes built-in walking route navigation (via OSRM footway routing), GPS centering, custom building markers, and interactive info popups.
+

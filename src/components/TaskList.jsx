@@ -77,15 +77,7 @@ export default function TaskList({ tasks, signedIn }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="h-4 w-36 border-2 border-black bg-white rounded-full overflow-hidden p-0.5">
-              <div 
-                className="h-full bg-lpu-yellow border border-black rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-            <span className="neo-badge neo-badge-yellow">{progressPct}%</span>
-          </div>
+          
         </div>
 
         {/* Filter Pills */}
@@ -142,15 +134,7 @@ export default function TaskList({ tasks, signedIn }) {
                     <h3 className={`text-sm font-black uppercase ${isDone ? "line-through text-black/50" : "text-black group-hover:text-lpu-orange"} transition-colors`}>
                       {t.title}
                     </h3>
-                    <span className="neo-badge neo-badge-white text-[10px] py-0.5">
-                      {t.stage}
-                    </span>
-                    {t.priority === "important" && (
-                      <span className="neo-badge neo-badge-orange text-[10px] py-0.5">
-                        High Priority
-                      </span>
-                    )}
-                  </div>
+                    </div>
 
                   <p className="text-xs font-semibold text-black/80 leading-relaxed">
                     {t.description}

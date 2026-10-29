@@ -73,7 +73,7 @@ export default function PublicLanding({ announcements = [], upcomingEvents = [] 
             </Link>
             <Link href="/campus-map" className="btn btn-white text-sm px-5 py-3">
               <MapPin className="h-4 w-4 mr-2 text-lpu-orange" />
-              <span>Interactive Map</span>
+              <span>Map</span>
             </Link>
             <Link href="/signup" className="btn text-sm px-5 py-3">
               <span>Create Account</span>
@@ -81,21 +81,7 @@ export default function PublicLanding({ announcements = [], upcomingEvents = [] 
             </Link>
           </div>
 
-          {/* Quick Search Neo Form */}
-          <form action="/services" method="GET" className="pt-2 flex flex-col sm:flex-row gap-2 max-w-xl">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-black" />
-              <input
-                name="q"
-                placeholder="Search Block 34, Uni-Mall, Hospital, Library..."
-                className="input pl-10 text-xs sm:text-sm bg-white"
-              />
-            </div>
-            <button type="submit" className="btn btn-black shrink-0 text-xs sm:text-sm">
-              Search Directory
-            </button>
-          </form>
-        </div>
+          </div>
       </section>
 
       {/* Feature Pillars Grid */}
@@ -122,7 +108,7 @@ export default function PublicLanding({ announcements = [], upcomingEvents = [] 
               <div className="h-12 w-12 rounded-xl border-3 border-black bg-lpu-yellow flex items-center justify-center text-black shadow-neo-sm group-hover:bg-lpu-orange group-hover:text-white transition-colors">
                 <Compass className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-black uppercase text-black">Interactive Campus Map</h3>
+              <h3 className="text-base font-black uppercase text-black">Campus Map</h3>
               <p className="text-xs font-medium text-black leading-relaxed">
                 600+ acres simplified. Find Block 32 reporting, Block 34 (CSE), Block 38 Library, hostels, and routing.
               </p>

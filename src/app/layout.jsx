@@ -8,7 +8,7 @@ import { Compass, ShieldCheck, Heart } from "lucide-react";
 
 export const metadata = {
   title: "LPU Freshman Guide — Official Neo Student Companion",
-  description: "An independent, verified campus guide, interactive map, directory, and onboarding portal for Lovely Professional University freshmen.",
+  description: "An independent, verified campus guide, map, directory, and onboarding portal for Lovely Professional University freshmen.",
   icons: {
     icon: "/lpu-logo.png",
   }

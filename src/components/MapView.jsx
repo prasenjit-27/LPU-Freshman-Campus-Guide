@@ -28,21 +28,45 @@ export default function MapView({ locations = [] }) {
   const [is3D, setIs3D] = useState(true);
   const [mapTheme, setMapTheme] = useState("street"); // "street" | "satellite"
 
-  // Base map tiles (100% free, reliable, no API key required)
+  // Outside World Mask Polygon (Cuts out LPU Campus so only LPU is visible)
+const outsideLpuMask = {
+  type: "Feature",
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [-180, -90],
+        [180, -90],
+        [180, 90],
+        [-180, 90],
+        [-180, -90]
+      ],
+      // Cutout hole for LPU Campus (Clockwise inner ring)
+      [
+        [75.6975, 31.2585],
+        [75.7115, 31.2585],
+        [75.7130, 31.2480],
+        [75.6995, 31.2480],
+        [75.6975, 31.2585]
+      ]
+    ]
+  }
+};
+
+  // Base map style (Clean animated 3D illustration style, completely non-satellite)
   const mapStyle = useMemo(() => {
-    const tileUrl = mapTheme === "satellite"
-      ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+    // High-resolution clean Carto Voyager tiles (illustrative / vector cartoon feel, no satellite imagery)
+    const tileUrl = "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
 
     return {
       version: 8,
-      name: "LPU 3D Map",
+      name: "LPU 3D Animated Campus",
       sources: {
         "base-tiles": {
           type: "raster",
           tiles: [tileUrl],
           tileSize: 256,
-          attribution: "© OpenStreetMap contributors, Esri"
+          attribution: "© OpenStreetMap contributors, CARTO"
         },
         "lpu-boundary": {
           type: "geojson",
@@ -51,10 +75,14 @@ export default function MapView({ locations = [] }) {
         "lpu-3d-buildings": {
           type: "geojson",
           data: lpu3DBuildings
+        },
+        "outside-mask": {
+          type: "geojson",
+          data: outsideLpuMask
         }
       },
       layers: [
-        // 1. Photographic Base Tiles
+        // 1. Clean Illustrated 2D/3D Base Map
         {
           id: "base-tiles-layer",
           type: "raster",
@@ -62,14 +90,24 @@ export default function MapView({ locations = [] }) {
           minzoom: 0,
           maxzoom: 20
         },
-        // 2. 600+ Acre LPU Perimeter Outline
+        // 2. Dim and Restrict Everything Outside LPU Campus
+        {
+          id: "outside-campus-mask",
+          type: "fill",
+          source: "outside-mask",
+          paint: {
+            "fill-color": "#0F172A",
+            "fill-opacity": 0.88
+          }
+        },
+        // 3. 600+ Acre LPU Perimeter Glow & Outline
         {
           id: "lpu-boundary-fill",
           type: "fill",
           source: "lpu-boundary",
           paint: {
-            "fill-color": "#FFA04D",
-            "fill-opacity": 0.08
+            "fill-color": "#F97316",
+            "fill-opacity": 0.05
           }
         },
         {
@@ -77,12 +115,11 @@ export default function MapView({ locations = [] }) {
           type: "line",
           source: "lpu-boundary",
           paint: {
-            "line-color": "#F37021",
-            "line-width": 3,
-            "line-dasharray": [2, 2]
+            "line-color": "#EA580C",
+            "line-width": 4
           }
         },
-        // 3. 3D Extruded Building Models with Heights & LPU Brand Colors
+        // 4. Vibrant 3D Extruded Building Models with Shadows and Heights
         {
           id: "lpu-3d-buildings-extrusion",
           type: "fill-extrusion",
@@ -91,12 +128,12 @@ export default function MapView({ locations = [] }) {
             "fill-extrusion-color": ["get", "color"],
             "fill-extrusion-height": ["get", "height"],
             "fill-extrusion-base": ["get", "min_height"],
-            "fill-extrusion-opacity": 0.92
+            "fill-extrusion-opacity": 0.95
           }
         }
       ]
     };
-  }, [mapTheme]);
+  }, []);
 
   // Initialize MapLibre GL instance
   useEffect(() => {
@@ -118,14 +155,23 @@ export default function MapView({ locations = [] }) {
           mapInstanceRef.current = null;
         }
 
+        // Restrict panning strictly to LPU campus perimeter
+        const LPU_MAX_BOUNDS = [
+          [75.6960, 31.2470], // Southwest [lng, lat]
+          [75.7145, 31.2595]  // Northeast [lng, lat]
+        ];
+
         map = new maplibregl.Map({
           container: mapElementRef.current,
           style: mapStyle,
           center: [LPU_CENTER_LNG, LPU_CENTER_LAT],
-          zoom: 16.5,
-          pitch: is3D ? 58 : 0,
-          bearing: is3D ? -18 : 0,
-          maxPitch: 70,
+          zoom: 16.8,
+          minZoom: 15.5,
+          maxZoom: 19.5,
+          pitch: 62,
+          bearing: -20,
+          maxPitch: 75,
+          maxBounds: LPU_MAX_BOUNDS,
           attributionControl: false
         });
 
@@ -136,6 +182,23 @@ export default function MapView({ locations = [] }) {
           if (!isMounted) return;
           mapInstanceRef.current = map;
           setMapLoaded(true);
+
+          // Smooth 3D animation - subtle camera orbit over LPU campus
+          let animFrameId;
+          function rotateCamera(timestamp) {
+            if (!isMounted || !map) return;
+            // Gentle continuous bearing orbit
+            const currentBearing = map.getBearing();
+            map.setBearing((currentBearing + 0.04) % 360);
+            animFrameId = requestAnimationFrame(rotateCamera);
+          }
+
+          // Start animated 3D orbit
+          animFrameId = requestAnimationFrame(rotateCamera);
+
+          // Pause gentle rotation when user interacts with mouse/touch
+          map.on("mousedown", () => cancelAnimationFrame(animFrameId));
+          map.on("touchstart", () => cancelAnimationFrame(animFrameId));
 
           // Click on 3D building to select
           map.on("click", "lpu-3d-buildings-extrusion", (e) => {
@@ -320,53 +383,6 @@ export default function MapView({ locations = [] }) {
     <div className="space-y-3">
       {/* 3D Map Canvas - Full Width */}
       <div className="relative rounded-2xl border-4 border-black overflow-hidden bg-slate-100 shadow-neo min-h-[580px] h-[80vh]">
-        {/* Floating Controls at Top */}
-        <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2">
-          {/* Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black text-black">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping inline-block" />
-            <span>LPU 3D Campus • 600+ Acres</span>
-          </div>
-
-          {/* 3D / 2D Toggle Button */}
-          <button
-            onClick={toggle3D}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
-          >
-            <Box className="h-3.5 w-3.5" />
-            <span>{is3D ? "3D View ON" : "2D Plan View"}</span>
-          </button>
-
-          {/* Map Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
-          >
-            <Layers className="h-3.5 w-3.5" />
-            <span className="capitalize">{mapTheme === "street" ? "Satellite View" : "Street View"}</span>
-          </button>
-
-          {/* Reset Campus View */}
-          <button
-            onClick={resetCampusView}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
-            title="Reset full campus view"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span>Reset View</span>
-          </button>
-
-          {/* Center GPS */}
-          <button
-            onClick={centerOnUser}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-black border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-xs font-black transition-all cursor-pointer"
-            title="Locate my position on campus"
-          >
-            <LocateFixed className="h-3.5 w-3.5" />
-            <span>Locate Me</span>
-          </button>
-        </div>
-
         {err && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-red-50/95 text-red-700 space-y-2">
             <AlertCircle className="h-6 w-6" />

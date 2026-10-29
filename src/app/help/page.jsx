@@ -65,22 +65,6 @@ export default async function Help({ searchParams }) {
       </section>
 
       {/* Neo Search Input Bar */}
-      <form className="flex gap-2.5">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-black" />
-          <input 
-            name="q" 
-            defaultValue={q} 
-            className="input pl-10 text-xs sm:text-sm bg-white" 
-            aria-label="Search FAQs" 
-            placeholder="Search questions (e.g. attendance, UMS, hostel, hospital)..." 
-          />
-        </div>
-        <button className="btn btn-black text-xs sm:text-sm px-6">
-          Search
-        </button>
-      </form>
-
       {/* FAQ Accordions */}
       <div className="space-y-3.5">
         {items.map((f, idx) => (
