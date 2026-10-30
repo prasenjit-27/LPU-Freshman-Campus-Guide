@@ -16,11 +16,11 @@ export default function DirectorySection({ items = [] }) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-wrap justify-center gap-4">
         {items.map((l, idx) => (
           <div 
             key={l._id || idx} 
-            className="card border-3 border-black p-5 shadow-neo flex flex-col justify-between space-y-3 hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform"
+            className="card border-3 border-black p-5 shadow-neo flex flex-col justify-between space-y-3 hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.75rem)]"
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between">

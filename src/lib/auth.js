@@ -1,6 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { getDb } from "@/lib/mongodb";
+import { loginSchema } from "@/lib/validation";
 
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -9,9 +10,17 @@ export const authOptions = {
   providers: [
     CredentialsProvider({
       credentials: { email: {}, password: {} },
-      async authorize(c) {
-        if (!c?.email || !c?.password) return null;
-        const normalizedEmail = c.email.trim().toLowerCase();
+      async authorize(credentials) {
+        // Enforce strict Zod schema validation
+        const parsed = loginSchema.safeParse(credentials);
+        if (!parsed.success) {
+          const errMsg = parsed.error.issues[0]?.message || "Invalid credentials format.";
+          throw new Error(errMsg);
+        }
+
+        const { email, password } = parsed.data;
+        const normalizedEmail = email.trim().toLowerCase();
+
         const db = await getDb();
         const user = await db.collection("users").findOne({ email: normalizedEmail });
         if (!user || !user.passwordHash) return null;
@@ -21,7 +30,7 @@ export const authOptions = {
           throw new Error("Account has been deactivated. Please contact an administrator.");
         }
 
-        const valid = await bcrypt.compare(c.password, user.passwordHash);
+        const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
         // Record last login timestamp asynchronously

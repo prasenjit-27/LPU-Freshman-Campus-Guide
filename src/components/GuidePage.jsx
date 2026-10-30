@@ -89,9 +89,9 @@ export default function GuidePage({ id }) {
               </p>
             </div>
 
-            <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="flex flex-wrap justify-center gap-3.5">
               {section.details.map((item, idx) => (
-                <div key={idx} className="rounded-xl border-2 border-black bg-lpu-soft/40 p-4 space-y-1.5 shadow-neo-sm">
+                <div key={idx} className="rounded-xl border-2 border-black bg-lpu-soft/40 p-4 space-y-1.5 shadow-neo-sm w-full sm:w-[calc(50%-0.4375rem)]">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-lpu-orange border border-black" />
                     <h3 className="text-xs font-black uppercase text-black">{item.label}</h3>

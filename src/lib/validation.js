@@ -7,10 +7,35 @@ const src = {
   verificationStatus: z.enum(["verified", "needs_review", "unverified"]).default("needs_review"),
 };
 
+export const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(1, { message: "Password is required." }),
+});
+
 export const signupSchema = z.object({
-  name: z.string().trim().min(2).max(80),
-  email: z.string().trim().toLowerCase().email(),
-  password: z.string().min(8).max(100),
+  name: z.string().trim().min(2, { message: "Name must be at least 2 characters." }).max(80),
+  email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }).max(100),
+});
+
+export const requestSignupOtpSchema = z.object({
+  name: z.string().trim().min(2, { message: "Name must be at least 2 characters." }).max(80),
+  email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }).max(100),
+});
+
+export const verifySignupOtpSchema = z.object({
+  email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address." }),
+  otp: z.string().trim().regex(/^\d{6}$/, { message: "OTP must be a 6-digit numeric code." }),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address." }),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(20, { message: "Invalid or expired reset token." }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }).max(100),
 });
 
 export const profileSchema = z.object({
@@ -58,29 +83,28 @@ export const adminSchemas = {
       content: z.string().trim().max(5000).default(""),
       category: z.string().trim().max(40).default("general"),
       pinned: z.coerce.boolean().default(false),
-      expiresAt: z.coerce.date().optional(),
-      ...src,
-    }),
-  },
-  events: {
-    collection: "events",
-    schema: z.object({
-      name: z.string().trim().min(2).max(150),
-      description: z.string().trim().max(2000).default(""),
-      startsAt: z.coerce.date(),
-      endsAt: z.coerce.date().optional(),
-      venue: z.string().trim().max(150).default(""),
-      category: z.string().trim().max(40).default("general"),
-      registrationUrl: url.optional(),
+      publishedAt: z.coerce.date().default(() => new Date()),
       ...src,
     }),
   },
   faqs: {
     collection: "faqs",
     schema: z.object({
-      question: z.string().trim().min(3).max(200),
-      answer: z.string().trim().min(3).max(3000),
-      category: z.string().trim().max(40).default("general"),
+      question: z.string().trim().min(5).max(200),
+      answer: z.string().trim().min(5).max(4000),
+      category: z.string().trim().min(2).max(40),
+      ...src,
+    }),
+  },
+  events: {
+    collection: "events",
+    schema: z.object({
+      title: z.string().trim().min(2).max(150),
+      description: z.string().trim().max(3000).default(""),
+      location: z.string().trim().max(120).default(""),
+      startsAt: z.coerce.date(),
+      endsAt: z.coerce.date().optional(),
+      category: z.string().trim().max(40).default("orientation"),
       ...src,
     }),
   },

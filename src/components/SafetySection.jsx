@@ -81,11 +81,11 @@ export default function SafetySection() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="flex flex-wrap justify-center gap-6">
         {emergencyProtocols.map((proto, idx) => {
           const Icon = proto.icon;
           return (
-            <div key={idx} className="card border-3 border-black p-6 shadow-neo space-y-4 flex flex-col justify-between">
+            <div key={idx} className="card border-3 border-black p-6 shadow-neo space-y-4 flex flex-col justify-between w-full md:w-[calc(50%-0.75rem)]">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
