@@ -101,7 +101,7 @@ export async function GET(req) {
   });
 }
 
-// PATCH /api/admin/users: Update user role, status (activate/deactivate), or reset password
+// PATCH & POST /api/admin/users: Update user role, status (activate/deactivate), or reset password
 export async function PATCH(req) {
   const check = await verifyAdmin();
   if (check.error) return check.error;
@@ -235,3 +235,6 @@ export async function DELETE(req) {
 
   return NextResponse.json({ ok: true, message: "User and associated records deleted." });
 }
+
+export const POST = PATCH;
+

@@ -113,9 +113,14 @@ export async function POST(req) {
       textContent: `Reset your LPU Freshman Guide password: ${resetUrl} (Valid for 1 hour)`,
     });
 
+    const isDev = !process.env.BREVO_API_KEY || process.env.BREVO_API_KEY === "your-brevo-api-key";
+
     return NextResponse.json({
       ok: true,
-      message: "Code sent successfully",
+      message: isDev
+        ? `Reset link created! In development mode, you can use: ${resetUrl}`
+        : "If an account exists with this email, a password reset link has been sent.",
+      ...(isDev ? { resetUrl } : {}),
     });
   } catch (error) {
     console.error("Forgot password error:", error);
