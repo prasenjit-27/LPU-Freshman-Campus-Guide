@@ -3,11 +3,24 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getDb } from "@/lib/mongodb";
 import { profileSchema } from "@/lib/validation";
+
+export async function GET() {
+  const s = await getServerSession(authOptions);
+  if (!s) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const db = await getDb();
+  const profile = await db.collection("studentProfiles").findOne({ userId: s.user.id });
+  return NextResponse.json({ profile: profile || {} });
+}
+
 export async function PUT(req) {
   const s = await getServerSession(authOptions);
   if (!s) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const p = profileSchema.safeParse(await req.json().catch(() => null));
   if (!p.success) return NextResponse.json({ error: "Invalid profile data" }, { status: 400 });
-  await (await getDb()).collection("studentProfiles").updateOne({ userId: s.user.id }, { $set: { ...p.data, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
+  await (await getDb()).collection("studentProfiles").updateOne(
+    { userId: s.user.id },
+    { $set: { ...p.data, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+    { upsert: true }
+  );
   return NextResponse.json({ ok: true });
 }

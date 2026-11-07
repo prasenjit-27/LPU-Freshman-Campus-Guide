@@ -102,9 +102,14 @@ export async function POST(req) {
       textContent: `Your LPU Freshman Guide verification code is: ${otp}. It expires in 10 minutes.`,
     });
 
+    const isDev = !process.env.BREVO_API_KEY || process.env.BREVO_API_KEY === "your-brevo-api-key";
+
     return NextResponse.json({
       ok: true,
-      message: "A 6-digit verification code has been sent to your email.",
+      message: isDev
+        ? `Code sent! For testing, your verification code is ${otp}`
+        : "A 6-digit verification code has been sent to your email.",
+      ...(isDev ? { devOtp: otp } : {}),
     });
   } catch (error) {
     console.error("Signup OTP error:", error);
