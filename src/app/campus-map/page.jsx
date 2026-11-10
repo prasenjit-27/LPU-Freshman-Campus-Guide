@@ -40,8 +40,6 @@ export default async function CampusMap() {
     <div className="space-y-6 py-2">
       {/* Neo-Brutalist Map Banner with Official LPU Logo */}
       <section className="relative overflow-hidden rounded-2xl border-4 border-black bg-white p-6 sm:p-8 shadow-neo-xl">
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full border-4 border-black bg-lpu-yellow" />
-        
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-3 border-black bg-white shadow-neo">
             <Image 

@@ -43,14 +43,7 @@ export default function DirectorySection({ items = [] }) {
               </p>
             </div>
 
-            <div className="pt-2 border-t-2 border-black flex items-center justify-between">
-              <a 
-                href="#map" 
-                className="text-xs font-black uppercase text-lpu-darkOrange hover:underline inline-flex items-center gap-1"
-              >
-                <MapPin className="h-3 w-3" />
-                <span>Locate on Map</span>
-              </a>
+            <div className="pt-2 border-t-2 border-black flex items-center justify-end">
               <span className="text-[10px] font-bold text-black/60">
                 {l.sourceName || "Campus Directory"}
               </span>

@@ -127,9 +127,6 @@ export default function PublicLanding({ faqs = [] }) {
     <div className="space-y-24 py-8">
       {/* SECTION 1: HERO OVERVIEW */}
       <section className="relative overflow-hidden rounded-2xl border-4 border-black bg-white p-6 sm:p-14 shadow-neo-xl text-center">
-        <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full border-4 border-black bg-lpu-yellow" />
-        <div className="absolute -left-8 -bottom-8 h-28 w-28 rotate-12 border-4 border-black bg-lpu-orange" />
-
         <div className="relative z-10 flex flex-col items-center space-y-6 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-lpu-yellow px-4 py-1.5 text-xs font-black uppercase text-black shadow-neo-sm">
             <Flame className="h-4 w-4 text-lpu-orange" />
