@@ -6,11 +6,17 @@ import { defaultCampusLocations } from "@/data/campusLocations";
 import { defaultFaqs } from "@/data/faqsData";
 import PublicLanding from "@/components/PublicLanding";
 import StudentDashboard from "@/components/StudentDashboard";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions).catch(() => null);
+
+  // If logged in as an Administrator, redirect directly to the Admin User Management & Progress Portal
+  if (session?.user?.role === "admin") {
+    redirect("/admin");
+  }
 
   // Common public announcements, upcoming events, campus locations, and FAQs
   const [announcements, upcomingEvents, dbLocations, dbFaqs] = await Promise.all([
@@ -36,8 +42,7 @@ export default async function HomePage() {
     );
   }
 
-  // Case 2: Authenticated User (Student or Admin accessing /)
-  // Fetch student progress, profile, and saved locations
+  // Case 2: Authenticated Student accessing /
   let completedTaskCount = 0;
   let profile = null;
   let savedLocations = [];

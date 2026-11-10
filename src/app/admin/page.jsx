@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Admin Portal — LPU Freshman Guide",
-  description: "Restricted administrative user management directory for LPU Freshman Guide.",
+  description: "Administrative user management and student progress directory for LPU Freshman Guide.",
 };
 
 export default async function AdminPage() {
@@ -33,18 +33,18 @@ export default async function AdminPage() {
   if (session.user.role !== "admin") {
     return (
       <div className="mx-auto max-w-lg py-12">
-        <div className="card border-red-200 bg-red-50/50 p-6 sm:p-8 text-center space-y-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+        <div className="card border-4 border-black bg-rose-50 p-6 sm:p-8 text-center space-y-4 shadow-neo-lg">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border-2 border-black bg-rose-200 text-rose-800">
             <ShieldAlert className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-xl font-bold text-slate-900">403 — Administrative Access Forbidden</h1>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <h1 className="text-xl font-black uppercase text-black">403 — Administrative Access Forbidden</h1>
+            <p className="text-xs font-semibold text-black/80 leading-relaxed">
               You are currently logged in as <strong>{session.user.email}</strong>, which holds a standard student role. Administrative features are strictly restricted.
             </p>
           </div>
           <div className="pt-2">
-            <Link href="/" className="btn text-xs justify-center">
+            <Link href="/" className="btn btn-yellow text-xs justify-center font-black">
               Return to Student Dashboard
             </Link>
           </div>
@@ -53,24 +53,26 @@ export default async function AdminPage() {
     );
   }
 
-  // Authenticated Authorized Administrator
+  // Authenticated Authorized Administrator: Exclusively User Management & Student Progress
   return (
     <div className="space-y-6 py-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b-4 border-black pb-5">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-purple-50 border border-purple-200 px-3 py-0.5 text-xs font-semibold text-purple-700 mb-1.5">
+          <div className="inline-flex items-center gap-1.5 rounded-md border-2 border-black bg-purple-100 px-2.5 py-0.5 text-xs font-black uppercase text-purple-900 shadow-neo-sm mb-2">
             <ShieldCheck className="h-3.5 w-3.5" />
-            Restricted Admin Area
+            <span>Admin Control Center</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">User Administration Directory</h1>
-          <p className="text-xs text-slate-500">
-            Audit, inspect, activate/deactivate accounts, and manage permissions for all registered users.
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-black">
+            User Management &amp; Student Progress
+          </h1>
+          <p className="text-xs sm:text-sm font-semibold text-black/70">
+            Manage student registrations, audit account status, reset passwords, and track freshman onboarding progress.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link href="/" className="btn bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs">
-            View Student Dashboard
+        <div className="flex items-center gap-2">
+          <Link href="/" className="btn btn-white text-xs font-black px-3.5 py-2 shadow-neo-sm">
+            Student Dashboard
           </Link>
         </div>
       </div>

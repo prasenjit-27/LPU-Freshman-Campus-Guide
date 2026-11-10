@@ -8,12 +8,15 @@ import {
   Layers, 
   MapPin, 
   ExternalLink,
-  AlertCircle 
+  AlertCircle,
+  Eye,
+  Building,
+  Navigation
 } from "lucide-react";
 import { lpuCampusBoundary, lpu3DBuildings } from "@/data/campus3dBuildings";
 
 // LPU Coordinates & Focus Bounds
-const LPU_CENTER_LNG = 75.7037;
+const LPU_CENTER_LNG = 75.7042;
 const LPU_CENTER_LAT = 31.2536;
 
 export default function MapView({ locations = [] }) {
@@ -26,47 +29,33 @@ export default function MapView({ locations = [] }) {
   const [err, setErr] = useState("");
   const [selectedSpot, setSelectedSpot] = useState(null);
   const [is3D, setIs3D] = useState(true);
-  const [mapTheme, setMapTheme] = useState("street"); // "street" | "satellite"
+  const [activeCategory, setActiveCategory] = useState("all");
 
-  // Outside World Mask Polygon (Cuts out LPU Campus so only LPU is visible)
-const outsideLpuMask = {
-  type: "Feature",
-  geometry: {
-    type: "Polygon",
-    coordinates: [
-      [
-        [-180, -90],
-        [180, -90],
-        [180, 90],
-        [-180, 90],
-        [-180, -90]
-      ],
-      // Cutout hole for LPU Campus (Clockwise inner ring)
-      [
-        [75.6975, 31.2585],
-        [75.7115, 31.2585],
-        [75.7130, 31.2480],
-        [75.6995, 31.2480],
-        [75.6975, 31.2585]
-      ]
-    ]
-  }
-};
+  // Filtered locations
+  const filteredLocations = useMemo(() => {
+    if (activeCategory === "all") return locations;
+    return locations.filter((loc) => loc.category === activeCategory);
+  }, [locations, activeCategory]);
 
-  // Base map style (Clean animated 3D illustration style, completely non-satellite)
+  // Categories list
+  const categories = useMemo(() => {
+    const set = new Set(locations.map((l) => l.category).filter(Boolean));
+    return ["all", ...Array.from(set)];
+  }, [locations]);
+
+  // Base map style (Clean keyless OpenStreetMap tiles with custom 3D building extrusions)
   const mapStyle = useMemo(() => {
-    // High-resolution clean Carto Voyager tiles (illustrative / vector cartoon feel, no satellite imagery)
-    const tileUrl = "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
+    const tileUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
     return {
       version: 8,
-      name: "LPU 3D Animated Campus",
+      name: "LPU 3D Campus Experience",
       sources: {
         "base-tiles": {
           type: "raster",
           tiles: [tileUrl],
           tileSize: 256,
-          attribution: "© OpenStreetMap contributors, CARTO"
+          attribution: "© OpenStreetMap contributors"
         },
         "lpu-boundary": {
           type: "geojson",
@@ -75,14 +64,10 @@ const outsideLpuMask = {
         "lpu-3d-buildings": {
           type: "geojson",
           data: lpu3DBuildings
-        },
-        "outside-mask": {
-          type: "geojson",
-          data: outsideLpuMask
         }
       },
       layers: [
-        // 1. Clean Illustrated 2D/3D Base Map
+        // 1. Illustrated 2D Base Map
         {
           id: "base-tiles-layer",
           type: "raster",
@@ -90,24 +75,14 @@ const outsideLpuMask = {
           minzoom: 0,
           maxzoom: 20
         },
-        // 2. Dim and Restrict Everything Outside LPU Campus
-        {
-          id: "outside-campus-mask",
-          type: "fill",
-          source: "outside-mask",
-          paint: {
-            "fill-color": "#0F172A",
-            "fill-opacity": 0.88
-          }
-        },
-        // 3. 600+ Acre LPU Perimeter Glow & Outline
+        // 2. 600+ Acre LPU Perimeter Outline
         {
           id: "lpu-boundary-fill",
           type: "fill",
           source: "lpu-boundary",
           paint: {
-            "fill-color": "#F97316",
-            "fill-opacity": 0.05
+            "fill-color": "#EA580C",
+            "fill-opacity": 0.06
           }
         },
         {
@@ -119,16 +94,28 @@ const outsideLpuMask = {
             "line-width": 4
           }
         },
-        // 4. Vibrant 3D Extruded Building Models with Shadows and Heights
+        // 3. Vibrant 3D Extruded Building Models with distinct heights and colors
         {
           id: "lpu-3d-buildings-extrusion",
           type: "fill-extrusion",
           source: "lpu-3d-buildings",
           paint: {
-            "fill-extrusion-color": ["get", "color"],
-            "fill-extrusion-height": ["get", "height"],
-            "fill-extrusion-base": ["get", "min_height"],
-            "fill-extrusion-opacity": 0.95
+            "fill-extrusion-color": [
+              "coalesce",
+              ["get", "color"],
+              "#F59E0B"
+            ],
+            "fill-extrusion-height": [
+              "coalesce",
+              ["get", "height"],
+              24
+            ],
+            "fill-extrusion-base": [
+              "coalesce",
+              ["get", "min_height"],
+              0
+            ],
+            "fill-extrusion-opacity": 0.92
           }
         }
       ]
@@ -155,21 +142,21 @@ const outsideLpuMask = {
           mapInstanceRef.current = null;
         }
 
-        // Restrict panning strictly to LPU campus perimeter
+        // Campus boundary bounds
         const LPU_MAX_BOUNDS = [
-          [75.6960, 31.2470], // Southwest [lng, lat]
-          [75.7145, 31.2595]  // Northeast [lng, lat]
+          [75.6900, 31.2420], // Southwest [lng, lat]
+          [75.7200, 31.2650]  // Northeast [lng, lat]
         ];
 
         map = new maplibregl.Map({
           container: mapElementRef.current,
           style: mapStyle,
           center: [LPU_CENTER_LNG, LPU_CENTER_LAT],
-          zoom: 16.8,
-          minZoom: 15.5,
+          zoom: 16.6,
+          minZoom: 15,
           maxZoom: 19.5,
-          pitch: 62,
-          bearing: -20,
+          pitch: 60,
+          bearing: -22,
           maxPitch: 75,
           maxBounds: LPU_MAX_BOUNDS,
           attributionControl: false
@@ -182,23 +169,6 @@ const outsideLpuMask = {
           if (!isMounted) return;
           mapInstanceRef.current = map;
           setMapLoaded(true);
-
-          // Smooth 3D animation - subtle camera orbit over LPU campus
-          let animFrameId;
-          function rotateCamera(timestamp) {
-            if (!isMounted || !map) return;
-            // Gentle continuous bearing orbit
-            const currentBearing = map.getBearing();
-            map.setBearing((currentBearing + 0.04) % 360);
-            animFrameId = requestAnimationFrame(rotateCamera);
-          }
-
-          // Start animated 3D orbit
-          animFrameId = requestAnimationFrame(rotateCamera);
-
-          // Pause gentle rotation when user interacts with mouse/touch
-          map.on("mousedown", () => cancelAnimationFrame(animFrameId));
-          map.on("touchstart", () => cancelAnimationFrame(animFrameId));
 
           // Click on 3D building to select
           map.on("click", "lpu-3d-buildings-extrusion", (e) => {
@@ -240,9 +210,9 @@ const outsideLpuMask = {
         mapInstanceRef.current = null;
       }
     };
-  }, [mapStyle, is3D]);
+  }, [mapStyle]);
 
-  // Add 3D Pin Markers on LPU buildings
+  // Add 3D Pin Markers on LPU campus landmarks
   useEffect(() => {
     if (!mapLoaded || !mapInstanceRef.current) return;
 
@@ -256,48 +226,48 @@ const outsideLpuMask = {
         if (!isMounted || !mapInstanceRef.current) return;
         const map = mapInstanceRef.current;
 
+        // Clear existing markers
         markersRef.current.forEach((m) => m.remove());
         markersRef.current = [];
 
-        locations.forEach((loc) => {
+        filteredLocations.forEach((loc) => {
           if (!loc.lat || !loc.lng) return;
 
           const el = document.createElement("div");
-          el.className = "cursor-pointer group relative";
+          el.className = "lpu-marker-pin cursor-pointer group flex flex-col items-center select-none";
+          el.style.zIndex = "30";
 
+          // Neo-brutalist 3D floating tag with pointer
           el.innerHTML = `
-            <div class="flex items-center justify-center w-7 h-7 rounded-full border-2 border-black bg-amber-400 hover:bg-orange-500 hover:text-white text-black shadow-[2px_2px_0px_0px_#000] transition-all transform duration-150">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-black bg-amber-300 text-black font-extrabold text-[12px] shadow-[3px_3px_0px_0px_#000] hover:bg-orange-500 hover:text-white transition-all transform hover:scale-110 active:translate-x-0.5 active:translate-y-0.5 whitespace-nowrap">
+              <span class="w-2 h-2 rounded-full bg-red-600 border border-black animate-pulse"></span>
+              <span>${loc.name.split('(')[0].trim()}</span>
             </div>
-            <div class="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-white opacity-0 group-hover:opacity-100 transition-opacity z-40 shadow-sm">
-              ${loc.name}
-            </div>
+            <div class="w-2 h-3 bg-black -mt-0.5"></div>
+            <div class="w-3 h-1.5 bg-black/50 rounded-full blur-[0.5px]"></div>
           `;
 
           const popupHtml = `
-            <div class="p-2 space-y-1.5 max-w-[240px] font-sans">
-              <span class="inline-block text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+            <div class="p-2.5 space-y-2 max-w-[260px] font-sans">
+              <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
                 ${loc.category || "Campus Location"}
               </span>
               <h4 class="text-xs font-black text-slate-900 leading-snug">${loc.name}</h4>
               ${loc.description ? `<p class="text-[11px] text-slate-600 line-clamp-3 leading-relaxed">${loc.description}</p>` : ""}
-              <div class="pt-1 border-t border-slate-200 text-[10px] font-bold text-orange-600">
-                📍 [${Number(loc.lat).toFixed(4)}, ${Number(loc.lng).toFixed(4)}]
+              <div class="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[11px] font-bold text-orange-600">
+                <span>📍 Lat ${Number(loc.lat).toFixed(4)}, Lng ${Number(loc.lng).toFixed(4)}</span>
               </div>
             </div>
           `;
 
           const popup = new maplibregl.Popup({
-            offset: 20,
+            offset: 24,
             closeButton: true,
             closeOnClick: false,
-            maxWidth: "280px"
+            maxWidth: "300px"
           }).setHTML(popupHtml);
 
-          const marker = new maplibregl.Marker({ element: el, anchor: "center" })
+          const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
             .setLngLat([Number(loc.lng), Number(loc.lat)])
             .setPopup(popup)
             .addTo(map);
@@ -318,34 +288,29 @@ const outsideLpuMask = {
     return () => {
       isMounted = false;
     };
-  }, [locations, mapLoaded]);
+  }, [filteredLocations, mapLoaded]);
 
-  // Toggle between 3D Tilt and 2D Plan view
+  // Toggle between 3D Isometric View and 2D Plan View
   function toggle3D() {
     if (!mapInstanceRef.current) return;
     const next3D = !is3D;
     setIs3D(next3D);
 
     mapInstanceRef.current.easeTo({
-      pitch: next3D ? 58 : 0,
-      bearing: next3D ? -18 : 0,
+      pitch: next3D ? 60 : 0,
+      bearing: next3D ? -22 : 0,
       duration: 800
     });
   }
 
-  // Toggle Satellite vs Street map tiles
-  function toggleTheme() {
-    setMapTheme((prev) => (prev === "street" ? "satellite" : "street"));
-  }
-
-  // Reset to default LPU campus angle
+  // Reset to default LPU campus isometric angle
   function resetCampusView() {
     if (!mapInstanceRef.current) return;
     mapInstanceRef.current.flyTo({
       center: [LPU_CENTER_LNG, LPU_CENTER_LAT],
-      zoom: 16.5,
-      pitch: 58,
-      bearing: -18,
+      zoom: 16.6,
+      pitch: 60,
+      bearing: -22,
       essential: true
     });
     setIs3D(true);
@@ -363,7 +328,7 @@ const outsideLpuMask = {
         const mod = await import("maplibre-gl");
         const maplibregl = mod.default || mod;
 
-        map.flyTo({ center: coords, zoom: 17.5, pitch: 58, essential: true });
+        map.flyTo({ center: coords, zoom: 17.5, pitch: 60, essential: true });
 
         if (userMarkerRef.current) {
           userMarkerRef.current.setLngLat(coords);
@@ -379,10 +344,85 @@ const outsideLpuMask = {
     );
   }
 
+  // Focus on specific location
+  function flyToLocation(loc) {
+    if (!mapInstanceRef.current || !loc.lat || !loc.lng) return;
+    setSelectedSpot(loc);
+    mapInstanceRef.current.flyTo({
+      center: [Number(loc.lng), Number(loc.lat)],
+      zoom: 17.5,
+      pitch: 60,
+      duration: 1000,
+      essential: true
+    });
+  }
+
   return (
     <div className="space-y-3">
-      {/* 3D Map Canvas - Full Width */}
-      <div className="relative rounded-2xl border-4 border-black overflow-hidden bg-slate-100 shadow-neo min-h-[580px] h-[80vh]">
+      {/* Category Filter Pills & Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-3 rounded-xl border-3 border-black shadow-neo">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-black uppercase text-black flex items-center gap-1 mr-1">
+            <Building className="h-3.5 w-3.5 text-lpu-orange" />
+            Filter:
+          </span>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-2.5 py-1 text-xs font-black rounded-lg border-2 border-black transition-all cursor-pointer ${
+                activeCategory === cat
+                  ? "bg-black text-white shadow-neo-sm scale-105"
+                  : "bg-white text-black hover:bg-amber-100"
+              }`}
+            >
+              {cat === "all" ? "All Blocks & Places" : cat}
+            </button>
+          ))}
+        </div>
+
+        {/* View mode toggle button */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggle3D}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-black text-xs font-black shadow-neo-sm cursor-pointer transition-all ${
+              is3D ? "bg-lpu-yellow text-black" : "bg-white text-black hover:bg-slate-100"
+            }`}
+          >
+            <Box className="h-3.5 w-3.5" />
+            <span>{is3D ? "3D Mode ON" : "Switch to 3D"}</span>
+          </button>
+
+          <button
+            onClick={resetCampusView}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 border-black bg-white hover:bg-slate-100 text-xs font-black shadow-neo-sm cursor-pointer"
+            title="Reset Campus View"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Reset</span>
+          </button>
+
+          <button
+            onClick={centerOnUser}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 border-black bg-white hover:bg-slate-100 text-xs font-black shadow-neo-sm cursor-pointer"
+            title="My Location"
+          >
+            <LocateFixed className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">GPS</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3D Map Canvas */}
+      <div className="relative rounded-2xl border-4 border-black overflow-hidden bg-slate-100 shadow-neo min-h-[580px] h-[78vh]">
+        {/* Floating Quick Badges */}
+        <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 pointer-events-none">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-neo-sm text-xs font-black text-black">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+            <span>LPU 3D Campus • {filteredLocations.length} Places Marked</span>
+          </div>
+        </div>
+
         {err && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-red-50/95 text-red-700 space-y-2">
             <AlertCircle className="h-6 w-6" />
@@ -394,26 +434,63 @@ const outsideLpuMask = {
         <div ref={mapElementRef} className="h-full w-full" />
       </div>
 
-      {/* Selected Location Card (If clicked) */}
+      {/* Selected Location Card */}
       {selectedSpot && (
-        <div className="card border-slate-200 shadow-sm p-4 text-xs space-y-2 bg-white flex items-center justify-between">
+        <div className="rounded-xl border-3 border-black shadow-neo p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <span className="inline-block text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+            <span className="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
               {selectedSpot.category || "Campus Landmark"}
             </span>
-            <h4 className="text-sm font-black text-slate-900">{selectedSpot.name}</h4>
+            <h4 className="text-base font-black text-slate-900">{selectedSpot.name}</h4>
             {selectedSpot.description && (
-              <p className="text-slate-600 max-w-2xl leading-relaxed">{selectedSpot.description}</p>
+              <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">{selectedSpot.description}</p>
+            )}
+            {selectedSpot.lat && selectedSpot.lng && (
+              <p className="text-[11px] font-bold text-orange-600">
+                Coordinates: {Number(selectedSpot.lat).toFixed(4)}, {Number(selectedSpot.lng).toFixed(4)}
+              </p>
             )}
           </div>
-          <button
-            onClick={() => setSelectedSpot(null)}
-            className="btn bg-slate-100 text-slate-700 hover:bg-slate-200 py-1 px-3 text-xs border-2 border-black"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2">
+            {selectedSpot.lat && selectedSpot.lng && (
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedSpot.lat},${selectedSpot.lng}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border-2 border-black bg-lpu-yellow hover:bg-lpu-orange hover:text-white font-black text-xs shadow-neo-sm transition-all"
+              >
+                <Navigation className="h-3.5 w-3.5" />
+                <span>Get Directions</span>
+              </a>
+            )}
+            <button
+              onClick={() => setSelectedSpot(null)}
+              className="px-3 py-1.5 rounded-lg border-2 border-black bg-slate-100 hover:bg-slate-200 text-xs font-black shadow-neo-sm cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Quick Jump Bar for Freshman Key Locations */}
+      <div className="bg-white p-3 rounded-xl border-3 border-black shadow-neo space-y-2">
+        <p className="text-xs font-black uppercase text-black flex items-center gap-1.5">
+          <MapPin className="h-3.5 w-3.5 text-lpu-orange" />
+          Quick Jump to Campus Block / Location:
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {locations.map((loc) => (
+            <button
+              key={loc._id || loc.name}
+              onClick={() => flyToLocation(loc)}
+              className="px-2.5 py-1 text-[11px] font-extrabold rounded-md border-2 border-black bg-slate-50 hover:bg-lpu-yellow text-slate-900 transition-all cursor-pointer shadow-neo-sm"
+            >
+              📍 {loc.name.split('(')[0].trim()}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
