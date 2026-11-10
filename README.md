@@ -39,7 +39,7 @@ Starting at a mega-campus like Lovely Professional University can be overwhelmin
 
 | Role | Email | Password | Access Scope |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `coding.prasenjit@gmail.com` | `Temp@123` | Full access to `/admin` User Management & Progress Monitor |
+| **Administrator**  Full access to `/admin` User Management & Progress Monitor |
 | **Student** | Any self-registered email | Set during signup | Student Dashboard, Map, Onboarding Tasks, Profile |
 
 ---
