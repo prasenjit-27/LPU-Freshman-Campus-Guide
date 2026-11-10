@@ -37,8 +37,6 @@ export default async function Services({ searchParams }) {
     <div className="space-y-8 py-2">
       {/* Neo-Brutalist Header Banner with Official LPU Logo */}
       <section className="relative overflow-hidden rounded-2xl border-4 border-black bg-white p-6 sm:p-10 shadow-neo-xl">
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full border-4 border-black bg-lpu-yellow" />
-        
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-3 border-black bg-white shadow-neo">
             <Image 
@@ -95,14 +93,7 @@ export default async function Services({ searchParams }) {
               </p>
             </div>
 
-            <div className="pt-2 border-t-2 border-black flex items-center justify-between">
-              <Link 
-                href={`/campus-map`} 
-                className="inline-flex items-center gap-1 text-xs font-black uppercase text-lpu-darkOrange underline"
-              >
-                <MapPin className="h-3 w-3" />
-                <span>Locate on Map</span>
-              </Link>
+            <div className="pt-2 border-t-2 border-black flex items-center justify-end">
               <span className="text-[10px] font-bold text-black/60">
                 {l.sourceName || "Campus Directory"}
               </span>
