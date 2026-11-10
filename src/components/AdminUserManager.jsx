@@ -8,8 +8,7 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   ChevronLeft, 
-  ChevronRight,
-  ShieldAlert
+  ChevronRight 
 } from "lucide-react";
 
 export default function AdminUserManager() {
@@ -82,7 +81,7 @@ export default function AdminUserManager() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Notifications */}
       {msg.text && (
         <div className={`flex items-center justify-between rounded-xl border-3 border-black p-4 text-xs font-black shadow-neo-sm ${
@@ -101,7 +100,7 @@ export default function AdminUserManager() {
       {/* Top Simple Metric: Total Normal Users */}
       <div className="rounded-2xl border-4 border-black bg-white p-6 shadow-neo flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-black bg-lpu-yellow shadow-neo-sm text-black">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-black bg-white shadow-neo-sm text-black">
             <Users className="h-6 w-6" />
           </div>
           <div>
@@ -153,7 +152,6 @@ export default function AdminUserManager() {
               ) : (
                 users.map((u) => {
                   const isBlocked = u.status === "deactivated";
-                  const pct = Math.round(((u.completedTasks || 0) / 15) * 100);
 
                   return (
                     <tr 
@@ -194,19 +192,11 @@ export default function AdminUserManager() {
                         )}
                       </td>
 
-                      {/* User Progress */}
+                      {/* User Progress: Pure numeric display without progress bar */}
                       <td className="py-4 px-4">
-                        <div className="space-y-1.5 max-w-[200px]">
-                          <div className="flex items-center justify-between text-[11px] font-black">
-                            <span>{u.completedTasks || 0} / 15 Tasks</span>
-                            <span className="text-lpu-darkOrange">{pct}%</span>
-                          </div>
-                          <div className="h-2.5 w-full rounded-full border-2 border-black bg-slate-100 overflow-hidden">
-                            <div 
-                              className="h-full bg-lpu-yellow transition-all" 
-                              style={{ width: `${Math.min(100, pct)}%` }} 
-                            />
-                          </div>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border-2 border-black bg-white shadow-neo-sm text-xs font-black text-black">
+                          <span>{u.completedTasks || 0} / 15</span>
+                          <span className="text-black/50 text-[10px] uppercase font-bold">Tasks</span>
                         </div>
                       </td>
 

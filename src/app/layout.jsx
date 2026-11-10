@@ -8,10 +8,6 @@ import {
   ExternalLink, 
   ShieldCheck, 
   PhoneCall, 
-  MapPin, 
-  GraduationCap, 
-  Building2, 
-  HeartHandshake,
   Globe
 } from "lucide-react";
 import { sources } from "@/data/sources";
@@ -47,15 +43,18 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className="flex min-h-full flex-col bg-[#FFFDF9] text-black antialiased selection:bg-lpu-yellow selection:text-black">
+      <body className="flex min-h-full flex-col bg-slate-100 text-black antialiased selection:bg-lpu-yellow selection:text-black">
         <Nav user={session?.user || null} />
         
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 md:py-8">
-          {children}
-        </main>
+        {/* Middle content section with Slate Gray background, min-h-[100vh] */}
+        <div className="flex-1 w-full bg-slate-100">
+          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 md:py-8">
+            {children}
+          </main>
+        </div>
 
-        {/* Rich Neo-Brutalist Footer With All Official Links */}
-        <footer className="border-t-4 border-black bg-white pt-12 pb-8 text-xs text-black">
+        {/* Rich Neo-Brutalist Footer With Deeper Distinct Beige/Sand Contrast Background */}
+        <footer className="border-t-4 border-black bg-[#EFE9DF] pt-12 pb-8 text-xs text-black">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 space-y-10">
             {/* Top Brand & Emergency Row */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b-2 border-black/20">
@@ -109,7 +108,7 @@ export default async function RootLayout({ children }) {
                     href={link.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-center justify-between p-2.5 rounded-lg border-2 border-black bg-lpu-soft/30 hover:bg-lpu-yellow hover:shadow-neo-sm transition-all w-full sm:w-[calc(50%-0.625rem)] md:w-[calc(33.333%-0.625rem)] lg:w-[calc(25%-0.625rem)]"
+                    className="group flex items-center justify-between p-2.5 rounded-lg border-2 border-black bg-white hover:bg-lpu-yellow hover:shadow-neo-sm transition-all w-full sm:w-[calc(50%-0.625rem)] md:w-[calc(33.333%-0.625rem)] lg:w-[calc(25%-0.625rem)] shadow-neo-sm"
                   >
                     <span className="font-bold text-[11px] text-black truncate pr-2 group-hover:underline">
                       {link.name}

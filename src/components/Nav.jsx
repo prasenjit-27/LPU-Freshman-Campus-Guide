@@ -16,8 +16,7 @@ import {
   LogIn, 
   UserPlus,
   Bus,
-  HelpCircle,
-  Users
+  HelpCircle
 } from "lucide-react";
 
 const studentLinks = [
@@ -50,7 +49,7 @@ export default function Nav({ user }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b-4 border-black bg-[#FFFDF9]">
+    <header className="sticky top-0 z-40 border-b-4 border-black bg-[#EFE9DF]">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6" aria-label="Main Navigation">
         {/* Brand Logo with Official LPU Logo */}
         <Link href={isAdmin ? "/admin" : "/"} className="flex items-center gap-3 group">
@@ -68,45 +67,25 @@ export default function Nav({ user }) {
             <span className="text-base font-black tracking-tight text-black uppercase group-hover:text-lpu-orange transition-colors">
               LPU Guide
             </span>
-            <span className={`text-[10px] font-bold uppercase tracking-wider text-black px-1.5 py-0.2 rounded border border-black inline-block w-fit ${
-              isAdmin ? "bg-purple-300" : "bg-lpu-yellow"
-            }`}>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-black px-1.5 py-0.2 rounded border border-black inline-block w-fit bg-white shadow-neo-sm">
               {isAdmin ? "Admin Portal" : "Freshman Portal"}
             </span>
           </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        {user && (
+        {/* Desktop Navigation Links - Shown only for students; hidden for admin to keep it clean */}
+        {user && !isAdmin && (
           <div className="hidden lg:flex items-center gap-1 text-xs font-black uppercase text-black">
-            {isAdmin ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-black bg-purple-200 shadow-neo-sm font-black text-black"
-                >
-                  <Users className="h-4 w-4" />
-                  <span>User Management &amp; Progress</span>
-                </Link>
-                <Link
-                  href="/"
-                  className="px-3 py-1.5 rounded-lg border-2 border-transparent hover:border-black hover:bg-lpu-soft hover:shadow-neo-sm transition-all"
-                >
-                  Student Guide View
-                </Link>
-              </div>
-            ) : (
-              studentLinks.map((link) => (
-                <a 
-                  key={link.href}
-                  href={link.href} 
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className="px-2.5 py-1.5 rounded-lg border-2 border-transparent hover:border-black hover:bg-lpu-soft hover:shadow-neo-sm transition-all cursor-pointer"
-                >
-                  {link.label}
-                </a>
-              ))
-            )}
+            {studentLinks.map((link) => (
+              <a 
+                key={link.href}
+                href={link.href} 
+                onClick={(e) => handleNavClick(e, link.href)}
+                className="px-2.5 py-1.5 rounded-lg border-2 border-transparent hover:border-black hover:bg-white hover:shadow-neo-sm transition-all cursor-pointer"
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
         )}
 
@@ -116,14 +95,10 @@ export default function Nav({ user }) {
             <div className="flex items-center gap-2">
               <Link 
                 href={isAdmin ? "/admin" : "/settings"} 
-                className={`flex items-center gap-2 rounded-lg border-2 border-black px-3 py-1.5 text-xs font-black uppercase text-black shadow-neo-sm hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-neo transition-all ${
-                  isAdmin ? "bg-purple-100" : "bg-white"
-                }`}
+                className="flex items-center gap-2 rounded-lg border-2 border-black px-3 py-1.5 text-xs font-black uppercase text-black bg-white shadow-neo-sm hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-neo transition-all"
                 title={isAdmin ? "Admin Directory" : "Student Profile & Settings"}
               >
-                <div className={`flex h-5 w-5 items-center justify-center rounded-full border border-black text-[10px] font-black text-black ${
-                  isAdmin ? "bg-purple-300" : "bg-lpu-yellow"
-                }`}>
+                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-black text-[10px] font-black text-black bg-white">
                   {user.name?.charAt(0).toUpperCase() || "A"}
                 </div>
                 <span className="max-w-[130px] truncate">{user.name}</span>
@@ -131,21 +106,23 @@ export default function Nav({ user }) {
 
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="p-1.5 text-black hover:bg-rose-100 border-2 border-black rounded-lg shadow-neo-sm hover:shadow-neo transition-all"
+                className="p-1.5 text-black hover:bg-rose-100 border-2 border-black rounded-lg shadow-neo-sm hover:shadow-neo transition-all cursor-pointer"
                 title="Sign out"
               >
                 <LogOut className="h-4 w-4" />
               </button>
 
-              {/* Mobile menu button for logged-in user */}
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden flex items-center justify-center p-2 rounded-lg border-2 border-black bg-lpu-yellow text-black shadow-neo-sm"
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
+              {/* Mobile menu button for logged-in students */}
+              {!isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="lg:hidden flex items-center justify-center p-2 rounded-lg border-2 border-black bg-white text-black shadow-neo-sm"
+                  aria-label="Toggle menu"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -168,48 +145,28 @@ export default function Nav({ user }) {
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer - ONLY rendered when signed in */}
-      {user && mobileMenuOpen && (
-        <div className="lg:hidden border-t-3 border-black bg-[#FFFDF9] px-4 py-4 space-y-4 shadow-neo-lg">
-          {isAdmin ? (
-            <div className="flex flex-col gap-2 text-xs font-black uppercase">
-              <Link
-                href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2.5 rounded-lg border-2 border-black bg-purple-200 shadow-neo-sm"
-              >
-                <Users className="h-4 w-4" />
-                <span>User Management &amp; Progress</span>
-              </Link>
-              <Link
-                href="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2.5 rounded-lg border-2 border-black bg-white shadow-neo-sm"
-              >
-                <span>Student Guide View</span>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2 text-xs font-black uppercase">
-              {studentLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    onClick={(e) => {
-                      handleNavClick(e, link.href);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex items-center gap-2 p-2.5 rounded-lg border-2 border-black bg-white hover:bg-lpu-soft shadow-neo-sm cursor-pointer"
-                  >
-                    <Icon className="h-4 w-4 text-lpu-orange" />
-                    <span>{link.label}</span>
-                  </a>
-                );
-              })}
-            </div>
-          )}
+      {/* Mobile Menu Drawer - ONLY rendered when signed in as student */}
+      {user && !isAdmin && mobileMenuOpen && (
+        <div className="lg:hidden border-t-3 border-black bg-[#EFE9DF] px-4 py-4 space-y-4 shadow-neo-lg">
+          <div className="grid grid-cols-2 gap-2 text-xs font-black uppercase">
+            {studentLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => {
+                    handleNavClick(e, link.href);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 p-2.5 rounded-lg border-2 border-black bg-white hover:bg-lpu-soft shadow-neo-sm cursor-pointer"
+                >
+                  <Icon className="h-4 w-4 text-lpu-orange" />
+                  <span>{link.label}</span>
+                </a>
+              );
+            })}
+          </div>
 
           <div className="pt-2 border-t-2 border-black flex items-center justify-between">
             <span className="text-xs font-black uppercase truncate">Signed in as {user.name}</span>
