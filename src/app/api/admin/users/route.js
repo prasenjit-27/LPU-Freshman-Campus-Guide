@@ -81,6 +81,7 @@ export async function GET(req) {
 }
 
 // PATCH /api/admin/users: Toggle account status (active <-> deactivated / blocked)
+// PATCH & POST /api/admin/users: Update user role, status (activate/deactivate), or reset password
 export async function PATCH(req) {
   const check = await verifyAdmin();
   if (check.error) return check.error;
@@ -109,3 +110,6 @@ export async function PATCH(req) {
 
   return NextResponse.json({ ok: true, message: "User status updated successfully" });
 }
+
+export const POST = PATCH;
+
