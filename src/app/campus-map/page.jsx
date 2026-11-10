@@ -61,7 +61,7 @@ export default async function CampusMap() {
               Campus Map
             </h1>
             <p className="text-xs sm:text-sm font-semibold text-black/80 max-w-2xl leading-relaxed">
-              Explore 600+ acres of Lovely Professional University. Filter academic blocks, residential complexes, auditoriums, and calculate walking routes.
+              Explore 600+ acres of Lovely Professional University campus grounds, roads, blocks, and facilities.
             </p>
           </div>
         </div>
