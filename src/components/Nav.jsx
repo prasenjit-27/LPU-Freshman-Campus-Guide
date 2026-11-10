@@ -105,7 +105,11 @@ export default function Nav({ user }) {
               </Link>
 
               <button
-                onClick={() => signOut({ callbackUrl: "/" })}
+                type="button"
+                onClick={async () => {
+                  await signOut({ redirect: false });
+                  window.location.href = "/";
+                }}
                 className="p-1.5 text-black hover:bg-rose-100 border-2 border-black rounded-lg shadow-neo-sm hover:shadow-neo transition-all cursor-pointer"
                 title="Sign out"
               >
