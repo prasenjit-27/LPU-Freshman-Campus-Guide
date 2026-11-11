@@ -114,6 +114,21 @@ export default function ProfileForm({ initial }) {
     <div className="space-y-6">
       {/* 1. Academic & Personal Profile Form */}
       <form onSubmit={submit} className="card border-4 border-black bg-white shadow-neo-xl p-6 sm:p-8 space-y-4">
+        {/* Registration Number — editable */}
+        <div className="space-y-1">
+          <label htmlFor="registrationNumber" className="block text-xs font-black uppercase tracking-wider text-black">
+            Registration Number
+          </label>
+          <input
+            id="registrationNumber"
+            name="registrationNumber"
+            defaultValue={initial.registrationNumber || ""}
+            placeholder="e.g. 12312345"
+            maxLength={30}
+            className="input text-xs sm:text-sm bg-white font-mono tracking-wider"
+          />
+        </div>
+
         {f("programme", "Programme")}
         {f("school", "School or department")}
         {f("year", "Year of study")}

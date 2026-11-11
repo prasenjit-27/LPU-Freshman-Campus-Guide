@@ -23,7 +23,7 @@ export async function POST(req) {
     return NextResponse.json({ error: errorMsg }, { status: 400 });
   }
 
-  const { name, email, password } = parsed.data;
+  const { name, email, password, registrationNumber } = parsed.data;
   const normalizedEmail = email.trim().toLowerCase();
 
   try {
@@ -52,6 +52,7 @@ export async function POST(req) {
       name: name.trim(),
       email: normalizedEmail,
       passwordHash,
+      registrationNumber: registrationNumber.trim().toUpperCase(),
       otpHash,
       createdAt: new Date(),
       expiresAt,

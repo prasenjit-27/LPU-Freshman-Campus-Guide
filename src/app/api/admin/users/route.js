@@ -58,6 +58,7 @@ export async function GET(req) {
       _id: strId,
       name: u.name,
       email: u.email,
+      registrationNumber: p?.registrationNumber || u.registrationNumber || "",
       role: u.role || "student",
       status: u.status || "active",
       createdAt: u.createdAt,
@@ -67,6 +68,7 @@ export async function GET(req) {
         programme: p.programme || "",
         year: p.year || "",
         accommodation: p.accommodation || "",
+        interests: p.interests || "",
       } : null,
       completedTasks: progressMap.get(strId) || 0,
     };

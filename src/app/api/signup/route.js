@@ -54,6 +54,7 @@ export async function POST(req) {
       name: pending.name,
       email: normalizedEmail,
       passwordHash: pending.passwordHash,
+      registrationNumber: pending.registrationNumber || "",
       role: "student",
       status: "active",
       emailVerified: now,

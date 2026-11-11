@@ -13,7 +13,7 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   // Form states
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", registrationNumber: "" });
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState("form"); // "form" | "otp"
   const [err, setErr] = useState("");
@@ -33,7 +33,8 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
 
     // Signup flow -> Validate & send Brevo OTP
     if (mode === "signup") {
-      const parsed = signupSchema.safeParse({ name, email, password });
+      const registrationNumber = formData.registrationNumber.trim();
+      const parsed = signupSchema.safeParse({ name, email, password, registrationNumber });
       if (!parsed.success) {
         setErr(parsed.error.issues[0]?.message || "Please fill all fields accurately.");
         return;
@@ -44,7 +45,7 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
         const res = await fetch("/api/auth/send-signup-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
+          body: JSON.stringify({ name, email, password, registrationNumber }),
         });
         const data = await res.json();
         setBusy(false);
@@ -304,6 +305,24 @@ export default function AuthForm({ mode = "login", adminNotice = false }) {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Aman Sharma"
                   className="input text-xs sm:text-sm bg-white"
+                />
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-black mb-1">
+                  Registration Number
+                </label>
+                <input
+                  name="registrationNumber"
+                  required
+                  minLength={2}
+                  maxLength={30}
+                  value={formData.registrationNumber}
+                  onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value.toUpperCase() })}
+                  placeholder="e.g. 12312345"
+                  className="input text-xs sm:text-sm bg-white font-mono tracking-wider"
                 />
               </div>
             )}
