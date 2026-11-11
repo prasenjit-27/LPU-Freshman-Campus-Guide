@@ -16,12 +16,14 @@ export const signupSchema = z.object({
   name: z.string().trim().min(2, { message: "Name must be at least 2 characters." }).max(80),
   email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }).max(100),
+  registrationNumber: z.string().trim().min(2, { message: "Registration number is required." }).max(30),
 });
 
 export const requestSignupOtpSchema = z.object({
   name: z.string().trim().min(2, { message: "Name must be at least 2 characters." }).max(80),
   email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }).max(100),
+  registrationNumber: z.string().trim().min(2, { message: "Registration number is required." }).max(30),
 });
 
 export const verifySignupOtpSchema = z.object({
@@ -44,6 +46,7 @@ export const profileSchema = z.object({
   year: z.string().trim().max(20).default(""),
   accommodation: z.enum(["", "hostel", "off-campus", "day-scholar"]).default(""),
   interests: z.string().trim().max(200).default(""),
+  registrationNumber: z.string().trim().max(30).default(""),
 });
 
 // Admin User Management Validation Schemas

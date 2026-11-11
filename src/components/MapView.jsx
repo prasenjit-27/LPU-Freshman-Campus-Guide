@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { AlertCircle, Navigation, MapPin } from "lucide-react";
 
@@ -8,6 +9,9 @@ const LPU_CENTER_LNG = 75.7042;
 const LPU_CENTER_LAT = 31.2536;
 
 export default function MapView({ locations = [] }) {
+  const searchParams = useSearchParams();
+  const spotParam = searchParams.get("spot");
+
   const mapElementRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -30,6 +34,24 @@ export default function MapView({ locations = [] }) {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.remove();
           mapInstanceRef.current = null;
+        }
+
+        // Check if there is an initial target spot from query param
+        const initialTarget = spotParam
+          ? locations.find((l) =>
+              l.name.toLowerCase().includes(spotParam.toLowerCase()) ||
+              spotParam.toLowerCase().includes(l.name.split("(")[0].trim().toLowerCase())
+            )
+          : null;
+
+        const initialCenter = initialTarget && initialTarget.lat && initialTarget.lng
+          ? [initialTarget.lng, initialTarget.lat]
+          : [LPU_CENTER_LNG, LPU_CENTER_LAT];
+
+        const initialZoom = initialTarget ? 17.5 : 16.2;
+
+        if (initialTarget) {
+          setSelectedSpot(initialTarget);
         }
 
         const mapStyle = {
@@ -62,8 +84,8 @@ export default function MapView({ locations = [] }) {
         map = new maplibregl.Map({
           container: mapElementRef.current,
           style: mapStyle,
-          center: [LPU_CENTER_LNG, LPU_CENTER_LAT],
-          zoom: 16.2,
+          center: initialCenter,
+          zoom: initialZoom,
           minZoom: 14.5,
           maxZoom: 19.5,
           pitch: 0,
@@ -79,35 +101,41 @@ export default function MapView({ locations = [] }) {
           if (!isMounted) return;
           mapInstanceRef.current = map;
 
-          // Render clean location pins on map
+          // Clear existing markers
           markersRef.current.forEach((m) => m.remove());
           markersRef.current = [];
 
           locations.forEach((loc) => {
             if (!loc.lat || !loc.lng) return;
 
+            const isHighlighted = initialTarget && initialTarget.name === loc.name;
+
             const el = document.createElement("div");
             el.className = "cursor-pointer group flex flex-col items-center select-none";
-            el.style.zIndex = "20";
+            el.style.zIndex = isHighlighted ? "35" : "25";
 
             el.innerHTML = `
-              <div style="background-color:#FFB800; color:#000; font-weight:800; font-size:11px; padding:3px 8px; border-radius:6px; border:2px solid #000; box-shadow:2px 2px 0px 0px #000; white-space:nowrap; display:flex; align-items:center; gap:4px;">
-                <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background-color:#DC2626;"></span>
+              <div style="background-color:${isHighlighted ? "#EA580C" : "#FFB800"}; color:${isHighlighted ? "#fff" : "#000"}; font-weight:900; font-size:11px; padding:3px 8px; border-radius:6px; border:2px solid #000; box-shadow:2px 2px 0px 0px #000; white-space:nowrap; display:flex; align-items:center; gap:5px; transform:translateY(-1px);">
+                <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background-color:${isHighlighted ? "#fff" : "#DC2626"}; border:1px solid #000;"></span>
                 <span>${loc.name.split('(')[0].trim()}</span>
               </div>
-              <div style="width:2px; height:6px; background-color:#000;"></div>
+              <div style="width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid #000; margin-top:-1px;"></div>
             `;
 
-            el.addEventListener("click", () => {
+            el.addEventListener("click", (e) => {
+              e.stopPropagation();
               setSelectedSpot(loc);
               map.flyTo({
                 center: [loc.lng, loc.lat],
-                zoom: 17,
+                zoom: 17.2,
                 essential: true
               });
             });
 
-            const marker = new maplibregl.Marker({ element: el })
+            const marker = new maplibregl.Marker({
+              element: el,
+              anchor: "bottom"
+            })
               .setLngLat([loc.lng, loc.lat])
               .addTo(map);
 
@@ -138,7 +166,7 @@ export default function MapView({ locations = [] }) {
         mapInstanceRef.current = null;
       }
     };
-  }, [locations]);
+  }, [locations, spotParam]);
 
   return (
     <div className="space-y-4">
@@ -151,20 +179,12 @@ export default function MapView({ locations = [] }) {
           </div>
         )}
 
-        {/* Floating Marker Count Badge */}
-        <div className="absolute top-3 left-3 z-10 pointer-events-none">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-neo-sm text-xs font-black text-black">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-            <span>{locations.length} Campus Locations Marked</span>
-          </div>
-        </div>
-
         <div ref={mapElementRef} className="h-full w-full" />
       </div>
 
       {/* Selected Location Info Card */}
       {selectedSpot && (
-        <div className="rounded-xl border-3 border-black shadow-neo p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="rounded-xl border-3 border-black shadow-neo p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
           <div className="space-y-1">
             <span className="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded border border-black bg-lpu-yellow text-black">
               {selectedSpot.category || "Campus Landmark"}
@@ -177,7 +197,7 @@ export default function MapView({ locations = [] }) {
             )}
             {selectedSpot.lat && selectedSpot.lng && (
               <p className="text-[11px] font-bold text-lpu-orange">
-                Coordinates: {Number(selectedSpot.lat).toFixed(4)}, {Number(selectedSpot.lng).toFixed(4)}
+                Coordinates: {Number(selectedSpot.lat).toFixed(5)}, {Number(selectedSpot.lng).toFixed(5)}
               </p>
             )}
           </div>
@@ -203,13 +223,13 @@ export default function MapView({ locations = [] }) {
         </div>
       )}
 
-      {/* Quick Jump Bar to Campus Locations */}
+      {/* Quick Jump Grid — uniform alignment */}
       <div className="bg-white p-3.5 rounded-xl border-3 border-black shadow-neo space-y-2">
         <p className="text-xs font-black uppercase text-black flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5 text-lpu-orange" />
-          Campus Blocks & Key Locations:
+          Campus Blocks &amp; Key Locations:
         </p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5">
           {locations.map((loc) => (
             <button
               key={loc._id || loc.name}
@@ -218,12 +238,12 @@ export default function MapView({ locations = [] }) {
                 if (mapInstanceRef.current) {
                   mapInstanceRef.current.flyTo({
                     center: [loc.lng, loc.lat],
-                    zoom: 17,
+                    zoom: 17.2,
                     essential: true
                   });
                 }
               }}
-              className="px-2.5 py-1 text-[11px] font-bold rounded-md border-2 border-black bg-white hover:bg-lpu-yellow text-black transition-all cursor-pointer shadow-neo-sm"
+              className="px-2.5 py-1.5 text-[11px] font-bold rounded-md border-2 border-black bg-white hover:bg-lpu-yellow text-black transition-all cursor-pointer shadow-neo-sm text-left truncate"
             >
               📍 {loc.name.split('(')[0].trim()}
             </button>
