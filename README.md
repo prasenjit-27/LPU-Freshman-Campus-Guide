@@ -93,9 +93,6 @@ Starting at a mega-campus like Lovely Professional University can be overwhelmin
 ```text
 ├── public/
 │   └── lpu-logo.png               # Official LPU brand asset
-├── scripts/
-│   ├── make-admin.mjs             # CLI utility to elevate accounts to admin
-│   └── seed.mjs                   # Seed initial content sources
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/
@@ -224,15 +221,11 @@ BREVO_SENDER_NAME=LPU Freshman Guide
 
 ## Admin Management
 
-To grant administrator permissions to any registered user, run:
+Administrative access is managed directly via the MongoDB database collection `users`. Setting a user's `role` field to `"admin"` grants immediate access to the `/admin` portal.
 
-```bash
-node --env-file=.env.local scripts/make-admin.mjs student@example.com
-```
-
-Once granted:
-- The user gains access to [/admin](https://lpu-campus-guide.vercel.app/admin).
-- Admins can view all students, inspect their onboarding progress, and toggle account access with a single click.
+Admins can:
+- View all registered students and their live numeric onboarding progress.
+- Toggle account access with a single click (**Block User** / **Unblock User**).
 
 ---
 
